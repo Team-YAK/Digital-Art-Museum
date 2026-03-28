@@ -5,8 +5,14 @@ from app.database import get_db
 from app.models import User, Artwork
 from app.schemas import ArtworkResponse
 from app.services.artwork_service import create_artwork, delete_artwork
+from app.config import API_BASE_URL
 
 router = APIRouter(prefix="/api/rooms", tags=["artworks"])
+
+
+def _abs_url(path: str) -> str:
+    """Convert a relative upload path to an absolute URL."""
+    return f"{API_BASE_URL}/{path.lstrip('/')}"
 
 
 def _artwork_response(a: Artwork) -> ArtworkResponse:
@@ -15,8 +21,8 @@ def _artwork_response(a: Artwork) -> ArtworkResponse:
         room_id=a.room_id,
         title=a.title,
         description=a.description,
-        image_url=a.image_url,
-        pixel_image_url=a.pixel_image_url,
+        image_url=_abs_url(a.image_url),
+        pixel_image_url=_abs_url(a.pixel_image_url),
         position_index=a.position_index,
         created_at=a.created_at.isoformat(),
     )
