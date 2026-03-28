@@ -154,8 +154,14 @@ export class HubScene2D extends Phaser.Scene {
     }
 
     // ---- EventBus ----
-    EventBus.on('modal-opened', () => { this.modalOpen = true; });
-    EventBus.on('modal-closed', () => { this.modalOpen = false; });
+    EventBus.on('modal-opened', () => {
+      this.modalOpen = true;
+      if (this.input.keyboard) this.input.keyboard.enabled = false;
+    });
+    EventBus.on('modal-closed', () => {
+      this.modalOpen = false;
+      if (this.input.keyboard) this.input.keyboard.enabled = true;
+    });
     EventBus.emit('scene-ready');
   }
 
