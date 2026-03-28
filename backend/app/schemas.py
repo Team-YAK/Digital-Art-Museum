@@ -88,3 +88,10 @@ class CommentResponse(BaseModel):
 class LikeResponse(BaseModel):
     liked: bool
     count: int
+
+
+class FeaturedArtworkResponse(BaseModel):
+    id: int
+    title: str
+    pixel_image_url: str
+    owner_username: str

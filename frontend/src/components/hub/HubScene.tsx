@@ -3,7 +3,8 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { EventBus } from "@/game/EventBus";
-import { getRandomRoom } from "@/lib/api";
+import { getFeaturedArtworks } from "@/lib/api";
+import type { FeaturedArtwork } from "@/types/api";
 
 interface HubSceneProps {
   username: string;
@@ -16,7 +17,7 @@ export default function HubScene({ username, onOpenChat }: HubSceneProps) {
   const router = useRouter();
 
   const handleInteract = useCallback(
-    async (payload: { action: string }) => {
+    async (payload: { action: string; username?: string }) => {
       switch (payload.action) {
         case "chat":
           EventBus.emit("modal-opened");
@@ -25,17 +26,14 @@ export default function HubScene({ username, onOpenChat }: HubSceneProps) {
         case "my-room":
           router.push(`/room/${username}`);
           break;
-        case "random-room":
-          try {
-            const { username: rndUser } = await getRandomRoom();
-            router.push(`/room/${rndUser}`);
-          } catch {
-            router.push(`/room/${username}`);
+        case "visit-room":
+          if (payload.username) {
+            router.push(`/room/${payload.username}`);
           }
           break;
       }
     },
-    [username, onOpenChat, router]
+    [username, onOpenChat, router],
   );
 
   useEffect(() => {
@@ -43,9 +41,13 @@ export default function HubScene({ username, onOpenChat }: HubSceneProps) {
 
     let destroyed = false;
 
-    import("@/game/hubMain").then(({ createHubGame }) => {
+    // Fetch artworks + import hubMain in parallel
+    Promise.all([
+      import("@/game/hubMain"),
+      getFeaturedArtworks(27).catch((): FeaturedArtwork[] => []),
+    ]).then(([{ createHubGame }, artworks]) => {
       if (destroyed || !divRef.current) return;
-      const game = createHubGame(divRef.current);
+      const game = createHubGame(divRef.current, artworks);
       gameRef.current = game;
     });
 

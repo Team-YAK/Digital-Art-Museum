@@ -11,6 +11,7 @@ const ROOM_WIDTH = 3000;
 const SLOT_START_X = 350;
 const SLOT_SPACING = 280;
 const SLOT_COUNT = 10;
+const WALL_H = 64;
 
 export class RoomScene extends Phaser.Scene {
   private player!: RoomPlayer;
@@ -20,6 +21,7 @@ export class RoomScene extends Phaser.Scene {
   private isOwner!: boolean;
   private spaceKey!: Phaser.Input.Keyboard.Key;
   private nearestSlotIndex: number = -1;
+  private nearBio: boolean = false;
   private modalOpen: boolean = false;
 
   constructor() {
@@ -31,21 +33,24 @@ export class RoomScene extends Phaser.Scene {
     this.isOwner = this.registry.get('isOwner') as boolean;
 
     const screenHeight = this.scale.height;
+    // floorY: where the floor tiles begin (bottom 25% of screen)
     const floorY = screenHeight * 0.75;
-    const WALL_H = 64;
 
-    // Set world bounds
-    this.physics.world.setBounds(0, 0, ROOM_WIDTH, screenHeight);
+    // World bounds: full horizontal room, vertical from wall bottom to screen bottom
+    this.physics.world.setBounds(0, WALL_H, ROOM_WIDTH, screenHeight - WALL_H);
 
     // ---- Background & tiles ----
-    this.renderTiles(floorY, screenHeight, WALL_H);
+    this.renderTiles(floorY, screenHeight);
 
-    // ---- Artist wall (far left) ----
+    // ---- Artist wall plaque (far left, on back wall) ----
+    // wallCenterY: center of the 64-px back wall tile
+    // interactY: player-level proximity trigger (same height as art frames)
     this.artistWall = new ArtistWall(
       this,
-      130,
-      floorY - 160,
-      this.roomData.artist_description
+      160,                       // x
+      WALL_H / 2,                // wallCenterY (≈ 32px — centre of top wall row)
+      floorY - 40,               // interactY — matches art frame height
+      this.roomData.owner_username,
     );
 
     // ---- Art slots ----
@@ -69,12 +74,12 @@ export class RoomScene extends Phaser.Scene {
       this.add.image(40, floorY - 40, 'door_open').setScale(2).setDepth(3);
     }
 
-    // ---- Player ----
-    this.player = new RoomPlayer(this, 200, floorY - 30);
+    // ---- Player (spawns slightly right of entrance, 2D movement enabled) ----
+    this.player = new RoomPlayer(this, 220, floorY - 30, true);
 
-    // ---- Camera ----
+    // ---- Camera: follow in both X and Y ----
     this.cameras.main.setBounds(0, 0, ROOM_WIDTH, screenHeight);
-    this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0);
+    this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     // ---- Input ----
     if (this.input.keyboard) {
@@ -98,8 +103,8 @@ export class RoomScene extends Phaser.Scene {
     EventBus.emit('scene-ready');
   }
 
-  private renderTiles(floorY: number, screenHeight: number, wallH: number): void {
-    // ---- Dark background behind walls ----
+  private renderTiles(floorY: number, screenHeight: number): void {
+    // ---- Dark background ----
     this.add.rectangle(ROOM_WIDTH / 2, 0, ROOM_WIDTH, screenHeight, 0x0d0d1a).setOrigin(0.5, 0).setDepth(-1);
 
     // ---- Back wall: gallery wall tiles ----
@@ -108,12 +113,12 @@ export class RoomScene extends Phaser.Scene {
       this.add.image(x, 0, wallKey).setOrigin(0, 0).setDepth(0);
     }
 
-    // ---- Wainscoting / lower wall above floor ----
+    // ---- Wainscoting: lower wall row just above floor ----
     for (let x = 0; x < ROOM_WIDTH; x += 64) {
-      this.add.image(x, floorY - wallH, wallKey).setOrigin(0, 0).setDepth(0);
+      this.add.image(x, floorY - WALL_H, wallKey).setOrigin(0, 0).setDepth(0);
     }
 
-    // ---- Floor tiles: wood floor ----
+    // ---- Floor tiles ----
     const floorKey = this.textures.exists('floor_wood') ? 'floor_wood' : 'floor';
     for (let x = 0; x < ROOM_WIDTH; x += 64) {
       for (let y = floorY; y < screenHeight; y += 64) {
@@ -121,7 +126,7 @@ export class RoomScene extends Phaser.Scene {
       }
     }
 
-    // ---- Sconces between art slots along the wall ----
+    // ---- Sconces between art slots along the back wall ----
     if (this.textures.exists('sconce1')) {
       for (let i = 0; i < SLOT_COUNT - 1; i++) {
         const sx = SLOT_START_X + i * SLOT_SPACING + SLOT_SPACING / 2;
@@ -157,13 +162,6 @@ export class RoomScene extends Phaser.Scene {
       }
     }
 
-    // ---- Rope barriers along the bottom edge ----
-    if (this.textures.exists('rope_barrier')) {
-      for (let x = 100; x < ROOM_WIDTH - 100; x += 400) {
-        this.add.image(x, floorY + 55, 'rope_barrier').setOrigin(0.5, 0.5).setDepth(2).setScale(1.3);
-      }
-    }
-
     // ---- Chandeliers hanging from ceiling ----
     if (this.textures.exists('chandelier1')) {
       for (let i = 0; i < SLOT_COUNT; i += 2) {
@@ -179,21 +177,25 @@ export class RoomScene extends Phaser.Scene {
 
     this.player.update();
 
-    // Check proximity to art slots
-    const playerX = this.player.getX();
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+
+    // ---- Art slot proximity (2D distance) ----
     let closestIdx = -1;
     let closestDist = Infinity;
 
     for (let i = 0; i < this.artSlots.length; i++) {
       const slot = this.artSlots[i];
-      const dist = Math.abs(playerX - slot.getX());
-      if (dist < 120 && dist < closestDist && slot.hasContent()) {
+      const dx = px - slot.getX();
+      const dy = py - slot.getY();
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 130 && dist < closestDist && slot.hasContent()) {
         closestDist = dist;
         closestIdx = i;
       }
     }
 
-    // Update proximity effects
+    // Update art slot proximity effects
     if (closestIdx !== this.nearestSlotIndex) {
       if (this.nearestSlotIndex >= 0 && this.nearestSlotIndex < this.artSlots.length) {
         this.artSlots[this.nearestSlotIndex].hideProximityEffects();
@@ -204,26 +206,50 @@ export class RoomScene extends Phaser.Scene {
       }
     }
 
-    // Space to interact
-    if (Phaser.Input.Keyboard.JustDown(this.spaceKey) && closestIdx >= 0) {
-      const slot = this.artSlots[closestIdx];
-      const artwork = slot.getArtwork();
+    // ---- Bio plaque proximity ----
+    const bdx = px - this.artistWall.getX();
+    const bdy = py - this.artistWall.getY();
+    const bioDist = Math.sqrt(bdx * bdx + bdy * bdy);
+    const nowNearBio = bioDist < 110;
 
-      if (artwork) {
-        const payload: ArtInteractPayload = {
-          artworkId: artwork.id,
-          title: artwork.title,
-          description: artwork.description,
-          imageUrl: `${API_URL}${artwork.image_url}`,
-          pixelImageUrl: `${API_URL}${artwork.pixel_image_url}`,
-        };
-        EventBus.emit('interact-art', payload);
-      } else if (this.isOwner) {
-        const payload: EmptySlotPayload = {
-          positionIndex: slot.getPositionIndex(),
-          roomOwner: this.roomData.owner_username,
-        };
-        EventBus.emit('interact-empty-slot', payload);
+    if (nowNearBio !== this.nearBio) {
+      this.nearBio = nowNearBio;
+      if (nowNearBio) {
+        this.artistWall.showPrompt();
+      } else {
+        this.artistWall.hidePrompt();
+      }
+    }
+
+    // ---- Space to interact ----
+    if (this.spaceKey && Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+      if (this.nearBio) {
+        // Bio plaque takes priority when the player is standing near it
+        this.artistWall.interact(
+          this.roomData.owner_username,
+          this.roomData.artist_description,
+          this.isOwner,
+        );
+      } else if (closestIdx >= 0) {
+        const slot = this.artSlots[closestIdx];
+        const artwork = slot.getArtwork();
+
+        if (artwork) {
+          const payload: ArtInteractPayload = {
+            artworkId: artwork.id,
+            title: artwork.title,
+            description: artwork.description,
+            imageUrl: `${API_URL}${artwork.image_url}`,
+            pixelImageUrl: `${API_URL}${artwork.pixel_image_url}`,
+          };
+          EventBus.emit('interact-art', payload);
+        } else if (this.isOwner) {
+          const payload: EmptySlotPayload = {
+            positionIndex: slot.getPositionIndex(),
+            roomOwner: this.roomData.owner_username,
+          };
+          EventBus.emit('interact-empty-slot', payload);
+        }
       }
     }
   }

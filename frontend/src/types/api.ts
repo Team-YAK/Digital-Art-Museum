@@ -54,3 +54,10 @@ export interface LikeData {
   liked: boolean;
   count: number;
 }
+
+export interface FeaturedArtwork {
+  id: number;
+  title: string;
+  pixel_image_url: string;
+  owner_username: string;
+}

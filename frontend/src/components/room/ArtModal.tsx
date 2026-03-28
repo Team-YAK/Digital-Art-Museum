@@ -173,6 +173,8 @@ export default function ArtModal({
   const [likeData, setLikeData] = useState<LikeData>({ liked: false, count: 0 });
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [likeError, setLikeError] = useState<string | null>(null);
 
   const fetchComments = useCallback(() => {
     getComments(artwork.artworkId).then(setComments).catch(() => {});
@@ -214,23 +216,36 @@ export default function ArtModal({
   };
 
   const handleLike = async () => {
+    setLikeError(null);
     try {
       const res = await toggleLike(artwork.artworkId);
       setLikeData(res);
-    } catch {
-      /* not logged in */
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("401") || msg.includes("authenticated")) {
+        setLikeError("Log in to like artwork");
+      } else {
+        setLikeError("Could not update like");
+      }
+      setTimeout(() => setLikeError(null), 2500);
     }
   };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     setSubmittingComment(true);
+    setCommentError(null);
     try {
       await addComment(artwork.artworkId, newComment.trim());
       setNewComment("");
       fetchComments();
-    } catch {
-      /* not logged in */
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("401") || msg.includes("authenticated")) {
+        setCommentError("You must be logged in to comment.");
+      } else {
+        setCommentError(msg || "Failed to post comment.");
+      }
     } finally {
       setSubmittingComment(false);
     }
@@ -341,26 +356,33 @@ export default function ArtModal({
             >
               {artwork.title}
             </h2>
-            <button
-              onClick={handleLike}
-              style={{
-                fontFamily: "monospace",
-                fontSize: 14,
-                fontWeight: "bold",
-                color: likeData.liked ? "#e74c3c" : dimGold,
-                background: likeData.liked ? "rgba(231,76,60,0.1)" : "transparent",
-                border: `2px solid ${likeData.liked ? "#e74c3c" : dimGold}`,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                padding: "4px 10px",
-                boxShadow: "2px 2px 0 #000",
-                textShadow: "1px 1px 0 #000",
-              }}
-            >
-              {likeData.liked ? "\u2764" : "\u2661"} {likeData.count}
-            </button>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+              <button
+                onClick={handleLike}
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 14,
+                  fontWeight: "bold",
+                  color: likeData.liked ? "#e74c3c" : dimGold,
+                  background: likeData.liked ? "rgba(231,76,60,0.1)" : "transparent",
+                  border: `2px solid ${likeData.liked ? "#e74c3c" : dimGold}`,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "4px 10px",
+                  boxShadow: "2px 2px 0 #000",
+                  textShadow: "1px 1px 0 #000",
+                }}
+              >
+                {likeData.liked ? "\u2764" : "\u2661"} {likeData.count}
+              </button>
+              {likeError && (
+                <span style={{ fontFamily: "monospace", fontSize: 9, color: "#e74c3c", textShadow: "1px 1px 0 #000" }}>
+                  {likeError}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Description */}
@@ -468,6 +490,13 @@ export default function ArtModal({
                 Post
               </button>
             </div>
+
+            {/* Comment error */}
+            {commentError && (
+              <p style={{ fontFamily: "monospace", fontSize: 11, color: "#e74c3c", margin: "0 0 8px", textShadow: "1px 1px 0 #000" }}>
+                {commentError}
+              </p>
+            )}
 
             {/* Comment list */}
             <div style={{ maxHeight: 180, overflowY: "auto" }}>

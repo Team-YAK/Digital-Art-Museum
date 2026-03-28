@@ -4,12 +4,13 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useRoom } from "@/hooks/useRoom";
 import { EventBus } from "@/game/EventBus";
 import { createGame } from "@/game/main";
-import type { ArtInteractPayload, EmptySlotPayload, ArtworkUploadedPayload } from "@/types/game";
+import type { ArtInteractPayload, EmptySlotPayload, ArtworkUploadedPayload, BioInteractPayload } from "@/types/game";
 import type { Artwork } from "@/types/api";
 import ArtModal from "./ArtModal";
 import UploadModal from "./UploadModal";
 import RoomHUD from "./RoomHUD";
 import EditBioModal from "./EditBioModal";
+import BioModal from "./BioModal";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -27,6 +28,7 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
   const [artModal, setArtModal] = useState<(ArtInteractPayload & { positionIndex?: number }) | null>(null);
   const [uploadSlot, setUploadSlot] = useState<number | null>(null);
   const [editBioOpen, setEditBioOpen] = useState(false);
+  const [bioModal, setBioModal] = useState<BioInteractPayload | null>(null);
   const [currentBio, setCurrentBio] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
@@ -50,6 +52,11 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
     EventBus.emit("modal-opened");
   }, []);
 
+  const handleBioInteract = useCallback((payload: BioInteractPayload) => {
+    setBioModal(payload);
+    EventBus.emit("modal-opened");
+  }, []);
+
   // Initialize Phaser game
   useEffect(() => {
     if (!room || !divRef.current || gameRef.current) return;
@@ -60,21 +67,28 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
     // Listen for Phaser events
     EventBus.on("interact-art", handleArtInteract);
     EventBus.on("interact-empty-slot", handleEmptySlot);
+    EventBus.on("interact-bio", handleBioInteract);
 
     return () => {
       EventBus.off("interact-art", handleArtInteract);
       EventBus.off("interact-empty-slot", handleEmptySlot);
+      EventBus.off("interact-bio", handleBioInteract);
 
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
       }
     };
-  }, [room, isOwner, handleArtInteract, handleEmptySlot]);
+  }, [room, isOwner, handleArtInteract, handleEmptySlot, handleBioInteract]);
 
-  // Close modal helper
+  // Close modal helpers
   const closeArtModal = useCallback(() => {
     setArtModal(null);
+    EventBus.emit("modal-closed");
+  }, []);
+
+  const closeBioModal = useCallback(() => {
+    setBioModal(null);
     EventBus.emit("modal-closed");
   }, []);
 
@@ -194,6 +208,24 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
           EventBus.emit("modal-opened");
         }}
       />
+
+      {/* Artist bio modal */}
+      {bioModal && (
+        <BioModal
+          username={bioModal.username}
+          description={bioModal.description}
+          isOwner={bioModal.isOwner}
+          onClose={closeBioModal}
+          onEditBio={
+            bioModal.isOwner
+              ? () => {
+                  setEditBioOpen(true);
+                  EventBus.emit("modal-opened");
+                }
+              : undefined
+          }
+        />
+      )}
 
       {/* Art viewer modal */}
       {artModal && (

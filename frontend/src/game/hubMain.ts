@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { HubBoot } from './scenes/HubBoot';
 import { HubScene2D } from './scenes/HubScene2D';
+import type { FeaturedArtwork } from '@/types/api';
 
 /** Stops Phaser from receiving keyboard events while an input/textarea is focused. */
 function installInputGuard(): () => void {
@@ -10,12 +11,14 @@ function installInputGuard(): () => void {
       e.stopImmediatePropagation();
     }
   };
-  // capture: true runs before Phaser's window listener
   window.addEventListener('keydown', guard, true);
   return () => window.removeEventListener('keydown', guard, true);
 }
 
-export function createHubGame(parent: HTMLElement): Phaser.Game {
+export function createHubGame(
+  parent: HTMLElement,
+  hubArtworks: FeaturedArtwork[] = [],
+): Phaser.Game {
   const w = parent.clientWidth || window.innerWidth;
   const h = parent.clientHeight || window.innerHeight;
 
@@ -39,7 +42,9 @@ export function createHubGame(parent: HTMLElement): Phaser.Game {
     },
   });
 
-  // Clean up the guard when the game is destroyed
+  // Store artwork data in the Phaser registry so scenes can access it
+  game.registry.set('hubArtworks', hubArtworks);
+
   game.events.once(Phaser.Core.Events.DESTROY, removeGuard);
 
   return game;

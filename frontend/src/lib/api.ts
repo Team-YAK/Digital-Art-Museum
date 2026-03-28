@@ -43,6 +43,7 @@ import type {
   TokenResponse,
   CommentData,
   LikeData,
+  FeaturedArtwork,
 } from "@/types/api";
 
 // Auth
@@ -163,6 +164,18 @@ export async function addComment(
     method: "POST",
     body: JSON.stringify({ text, parent_id: parentId || null }),
   });
+}
+
+// Featured artworks for hub display
+export async function getFeaturedArtworks(limit = 27): Promise<FeaturedArtwork[]> {
+  const raw = await request<FeaturedArtwork[]>(`/api/rooms/featured?limit=${limit}`);
+  // Prefix relative image URLs with the API base
+  return raw.map((a) => ({
+    ...a,
+    pixel_image_url: a.pixel_image_url.startsWith("http")
+      ? a.pixel_image_url
+      : `${API_URL}${a.pixel_image_url}`,
+  }));
 }
 
 // Likes

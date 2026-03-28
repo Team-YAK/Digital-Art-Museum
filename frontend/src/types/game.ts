@@ -17,3 +17,9 @@ export interface ArtworkUploadedPayload {
   pixelImageUrl: string;
   title: string;
 }
+
+export interface BioInteractPayload {
+  username: string;
+  description: string;
+  isOwner: boolean;
+}

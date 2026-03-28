@@ -196,6 +196,10 @@ export class ArtSlot {
     return this.x;
   }
 
+  getY(): number {
+    return this.y;
+  }
+
   hasContent(): boolean {
     return this.artwork !== null || (this.isOwner && this.plusText !== null);
   }
