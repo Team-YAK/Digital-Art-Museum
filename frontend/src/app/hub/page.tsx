@@ -1,47 +1,47 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useUser } from "@/hooks/useUser";
+import { LoadingScreen } from "@/components/shared/LoadingScreen";
+import { ChatOverlay } from "@/components/shared/ChatOverlay";
+
+const HubScene = dynamic(() => import("@/components/hub/HubScene"), {
+  ssr: false,
+  loading: () => <LoadingScreen />,
+});
 
 export default function HubPage() {
   const { username, isLoggedIn, isLoading } = useUser();
   const router = useRouter();
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isLoggedIn) {
-      router.push("/");
-    }
+    if (!isLoading && !isLoggedIn) router.push("/");
   }, [isLoggedIn, isLoading, router]);
 
-  if (isLoading || !isLoggedIn) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-950" />
-    );
+  if (isLoading || !isLoggedIn || !username) {
+    return <div className="min-h-screen bg-gray-950" />;
   }
 
-  // Placeholder -- replaced with 3D hub in Session 2
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 px-4 gap-6">
-      <h1 className="text-4xl font-mono font-bold text-white">Museum Hub</h1>
-      <p className="text-gray-400 font-mono">Welcome, {username}!</p>
-      <p className="text-gray-500 font-mono text-sm">
-        3D hub coming in Session 2
-      </p>
-      <div className="flex gap-4 mt-4">
-        <button
-          onClick={() => router.push(`/room/${username}`)}
-          className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg text-white font-mono transition-colors"
-        >
-          My Room
-        </button>
-        <button
-          onClick={() => router.push("/room/leonardo")}
-          className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-mono transition-colors"
-        >
-          Visit Leonardo
-        </button>
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* WASD hint */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+        <span className="font-mono text-xs text-gray-400 bg-black/50 px-3 py-1 rounded-full">
+          WASD / Arrow Keys to move · Click portals or NPC to interact
+        </span>
       </div>
+
+      {/* Username badge */}
+      <div className="absolute top-4 right-4 z-10 font-mono text-xs text-gray-400 bg-black/50 px-3 py-1 rounded-full">
+        {username}
+      </div>
+
+      <HubScene username={username} onOpenChat={() => setChatOpen(true)} />
+
+      {chatOpen && <ChatOverlay onClose={() => setChatOpen(false)} />}
     </div>
   );
 }

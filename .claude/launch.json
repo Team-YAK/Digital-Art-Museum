@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/anish/Documents/Python Coding/digital_art_museum/frontend", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "/Users/anish/Documents/Python Coding/digital_art_museum/backend/venv/bin/python",
+      "runtimeArgs": ["/Users/anish/Documents/Python Coding/digital_art_museum/backend/run.py"],
+      "port": 8000
+    }
+  ]
+}
