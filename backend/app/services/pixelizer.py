@@ -77,8 +77,9 @@ def pixelize(input_path: str) -> dict:
     display.save(display_abs, "PNG")
 
     # 2) Pixel version -- 64x64, 16-color quantized
+    #    Uses BOX filter to average all pixels in each patch
     pixel = img.copy()
-    pixel = pixel.resize((64, 64), Image.NEAREST)
+    pixel = pixel.resize((64, 64), Image.BOX)
     pixel = pixel.quantize(colors=16, method=Image.Quantize.MEDIANCUT)
     pixel = pixel.convert("RGB")
     pixel_filename = f"{file_id}_pixel.png"
@@ -86,8 +87,9 @@ def pixelize(input_path: str) -> dict:
     pixel.save(pixel_abs, "PNG")
 
     # 3) Sprite version -- 16x16, 8-color quantized (for in-game wall)
+    #    Uses BOX filter to average all pixels in each patch
     sprite = img.copy()
-    sprite = sprite.resize((16, 16), Image.NEAREST)
+    sprite = sprite.resize((16, 16), Image.BOX)
     sprite = sprite.quantize(colors=8, method=Image.Quantize.MEDIANCUT)
     sprite = sprite.convert("RGB")
     sprite_filename = f"{file_id}_sprite.png"

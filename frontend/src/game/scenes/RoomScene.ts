@@ -76,8 +76,14 @@ export class RoomScene extends Phaser.Scene {
     EventBus.on('artwork-uploaded', this.onArtworkUploaded, this);
     EventBus.on('artwork-deleted', this.onArtworkDeleted, this);
     EventBus.on('bio-updated', this.onBioUpdated, this);
-    EventBus.on('modal-opened', () => { this.modalOpen = true; });
-    EventBus.on('modal-closed', () => { this.modalOpen = false; });
+    EventBus.on('modal-opened', () => {
+      this.modalOpen = true;
+      if (this.input.keyboard) this.input.keyboard.enabled = false;
+    });
+    EventBus.on('modal-closed', () => {
+      this.modalOpen = false;
+      if (this.input.keyboard) this.input.keyboard.enabled = true;
+    });
 
     // Emit scene-ready so React knows the game is interactive
     EventBus.emit('scene-ready');
@@ -154,8 +160,8 @@ export class RoomScene extends Phaser.Scene {
           artworkId: artwork.id,
           title: artwork.title,
           description: artwork.description,
-          imageUrl: `${API_URL}/${artwork.image_url}`,
-          pixelImageUrl: `${API_URL}/${artwork.pixel_image_url}`,
+          imageUrl: `${API_URL}${artwork.image_url}`,
+          pixelImageUrl: `${API_URL}${artwork.pixel_image_url}`,
         };
         EventBus.emit('interact-art', payload);
       } else if (this.isOwner) {
@@ -177,8 +183,8 @@ export class RoomScene extends Phaser.Scene {
         room_id: this.roomData.id,
         title: payload.title,
         description: '',
-        image_url: payload.pixelImageUrl.replace(`${API_URL}/`, ''),
-        pixel_image_url: payload.pixelImageUrl.replace(`${API_URL}/`, ''),
+        image_url: payload.pixelImageUrl.replace(API_URL, ''),
+        pixel_image_url: payload.pixelImageUrl.replace(API_URL, ''),
         position_index: payload.positionIndex,
         created_at: new Date().toISOString(),
       });

@@ -43,7 +43,7 @@ export class ArtSlot {
   }
 
   private renderArtwork(artwork: Artwork): void {
-    const imageUrl = `${API_URL}/${artwork.pixel_image_url}`;
+    const imageUrl = `${API_URL}${artwork.pixel_image_url}`;
     const imageKey = `art_${this.positionIndex}_${artwork.id}`;
 
     // Gold frame border

@@ -88,7 +88,7 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
     const payload: ArtworkUploadedPayload = {
       id: artwork.id,
       positionIndex: artwork.position_index,
-      pixelImageUrl: `${API_URL}/${artwork.pixel_image_url}`,
+      pixelImageUrl: `${API_URL}${artwork.pixel_image_url}`,
       title: artwork.title,
     };
     EventBus.emit("artwork-uploaded", payload);
