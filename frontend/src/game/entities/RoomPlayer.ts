@@ -5,7 +5,7 @@ export class RoomPlayer {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key };
   private lastDirection: string = 'down';
-  private speed = 200;
+  private speed = 450;
   private allowVertical: boolean;
 
   constructor(scene: Phaser.Scene, x: number, y: number, allowVertical = false) {

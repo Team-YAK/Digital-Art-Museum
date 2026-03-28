@@ -9,6 +9,7 @@ export class RoomBoot extends Phaser.Scene {
     // ---- Tiles ----
     this.load.image('floor_wood',   '/assets/tiles/floor_wood.png');
     this.load.image('wall_gallery', '/assets/tiles/wall_gallery.png');
+    this.load.image('wall_charcoal','/wall_charcoal.png');
 
     // ---- Props ----
     this.load.image('chandelier1', '/assets/props/chandelier_01.png');
@@ -17,6 +18,11 @@ export class RoomBoot extends Phaser.Scene {
     this.load.image('sconce2',     '/assets/props/sconce_02.png');
     this.load.image('sconce3',     '/assets/props/sconce_03.png');
     this.load.image('pedestal1',   '/assets/props/pedestal_01.png');
+    this.load.image('pedestal2',   '/assets/props/pedestal_02.png');
+    this.load.image('bench_wood',  '/assets/props/bench_wood.png');
+    this.load.image('bench_modern','/assets/props/bench_modern.png');
+    this.load.image('statue_bust', '/assets/props/statue_bust.png');
+    this.load.image('statue_abstract', '/assets/props/statue_abstract.png');
 
     // ---- RandomSprites ----
     this.load.image('plant1',    '/assets/sprites/Plant1.png');

@@ -4,33 +4,34 @@ import { EventBus } from '../EventBus';
 import type { FeaturedArtwork } from '@/types/api';
 
 // ─── World constants ────────────────────────────────────────────────────────
-const HUB_SIZE   = 3000;
-const WALL_H     = 64;
+const HUB_WIDTH = 1800;
+const HUB_HEIGHT = 1200;
+const WALL_H = 64;
 
 // ─── Grid Definitions for Walkways ───────────────────────────────────────────
 const SLOT_COUNT = 24; // We will generate 24 easel frames in a grid
 const COLS = 6;
-const SLOT_SPACING_X = 400;
-const SLOT_SPACING_Y = 400;
-const START_X = (HUB_SIZE - (COLS - 1) * SLOT_SPACING_X) / 2;
-const START_Y = 800; // start below the entrance
+const SLOT_SPACING_X = 260;
+const SLOT_SPACING_Y = 280;
+const START_X = (HUB_WIDTH - (COLS - 1) * SLOT_SPACING_X) / 2;
+const START_Y = 160; // start closer to the top wall
 
 // ─── Hub canvas ─────────────────────────────────────────────────────────────
 interface HubCanvas {
-  x:         number;
+  x: number;
   interactY: number; // Y used for proximity detection
-  type:      'wall' | 'easel';
-  artwork:   FeaturedArtwork | null;
-  prompt:    Phaser.GameObjects.Text | null;
+  type: 'wall' | 'easel';
+  artwork: FeaturedArtwork | null;
+  prompt: Phaser.GameObjects.Text | null;
 }
 
 // ─── Fixed hub interactive objects (wizard, portal) ─────────────────────────
 interface HubObject {
-  label:    string;
+  label: string;
   sublabel: string;
-  x:        number;
-  y:        number;
-  action:   string;
+  x: number;
+  y: number;
+  action: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,51 +71,60 @@ export class HubScene2D extends Phaser.Scene {
   // ── create ──────────────────────────────────────────────────────────────────
   create(): void {
     const w = this.scale.width;
-    const h = HUB_SIZE;
+    const h = HUB_HEIGHT;
     const floorY = h * 0.75; // No longer highly relevant for true 2D, but we'll use 0 for back wall
 
     // World & physics bounds
-    this.physics.world.setBounds(0, WALL_H, HUB_SIZE, HUB_SIZE - WALL_H);
+    this.physics.world.setBounds(0, WALL_H, HUB_WIDTH, HUB_HEIGHT - WALL_H);
 
     // Obstacle group (easel colliders)
     this.obstacleGroup = this.physics.add.staticGroup();
 
     // Invincible map boundaries
-    this.obstacleGroup.create(-10, HUB_SIZE/2, 'wall').setDisplaySize(20, HUB_SIZE).refreshBody().setVisible(false);
-    this.obstacleGroup.create(HUB_SIZE+10, HUB_SIZE/2, 'wall').setDisplaySize(20, HUB_SIZE).refreshBody().setVisible(false);
-    this.obstacleGroup.create(HUB_SIZE/2, HUB_SIZE+10, 'wall').setDisplaySize(HUB_SIZE, 20).refreshBody().setVisible(false);
+    this.obstacleGroup.create(-10, HUB_HEIGHT / 2, 'wall').setDisplaySize(20, HUB_HEIGHT).refreshBody().setVisible(false);
+    this.obstacleGroup.create(HUB_WIDTH + 10, HUB_HEIGHT / 2, 'wall').setDisplaySize(20, HUB_HEIGHT).refreshBody().setVisible(false);
+    this.obstacleGroup.create(HUB_WIDTH / 2, HUB_HEIGHT + 10, 'wall').setDisplaySize(HUB_WIDTH, 20).refreshBody().setVisible(false);
 
     // ── Tiles ──────────────────────────────────────────────────────────────
-    this.buildTiles(HUB_SIZE);
+    this.buildTiles(HUB_HEIGHT);
 
     // ── Carpet runner (center of room, full length) ─────────────────────────
-    this.buildCarpet(HUB_SIZE);
+    this.buildCarpet(HUB_HEIGHT);
 
     // ── Sconces on back wall ────────────────────────────────────────────────
-    for (let x = 300; x < HUB_SIZE; x += 320) {
+    for (let x = 300; x < HUB_WIDTH; x += 320) {
       const key = `sconce${(Math.floor(x / 320) % 3) + 1}`;
       this.add.image(x, 6, key).setOrigin(0.5, 0).setDepth(2).setScale(1.3);
     }
 
     // ── Chandeliers ─────────────────────────────────────────────────────────
     const chandKeys = ['chandelier1', 'chandelier2', 'chandelier3'];
-    for (let x = 400; x < HUB_SIZE; x += 600) {
+    for (let x = 400; x < HUB_WIDTH; x += 600) {
       const key = chandKeys[Math.floor(x / 600) % chandKeys.length];
       this.add.image(x, WALL_H + 2, key).setOrigin(0.5, 0).setDepth(9).setScale(1.8);
     }
 
     // ── Museum title (entrance zone) ────────────────────────────────────────
-    this.add.text(HUB_SIZE / 2, WALL_H + 14, 'Digital Art Museum', {
+    this.add.text(HUB_WIDTH / 2, WALL_H + 14, 'Digital Art Museum', {
       fontFamily: 'monospace', fontSize: '18px', color: '#d4af37', fontStyle: 'bold',
     }).setOrigin(0.5, 0).setDepth(10);
 
     // ── Side decorations ────────────────────────────────────────────────────
     this.buildDecorations();
 
+    // ---- Decor ----
+    for (let y = 300; y < HUB_HEIGHT - 200; y += 400) {
+      // Benches along the left wall
+      this.add.image(140, y, 'bench_modern').setOrigin(0.5, 1).setScale(1.5).setDepth(1);
+      // Statues along the right wall
+      const ped = this.add.image(HUB_WIDTH - 140, y, 'pedestal2').setOrigin(0.5, 1).setDepth(1);
+      this.add.image(HUB_WIDTH - 140, y - ped.height / 2, 'statue_abstract').setOrigin(0.5, 1).setDepth(2);
+    }
+
     // ── Interactive hub objects (guide NPC + My Room portal) ─────────────────
     const staticObjects: HubObject[] = [
-      { label: 'Museum Guide', sublabel: 'Ask me anything!', x: HUB_SIZE * 0.5, y: 350, action: 'chat' },
-      { label: 'My Room',      sublabel: 'Your gallery',     x:  150, y: WALL_H + 20, action: 'my-room' },
+      { label: 'Museum Guide', sublabel: 'Ask me anything!', x: HUB_WIDTH * 0.5, y: 350, action: 'chat' },
+      { label: 'My Room', sublabel: 'Your gallery', x: 150, y: WALL_H + 20, action: 'my-room' },
     ];
 
     for (const obj of staticObjects) {
@@ -137,7 +147,7 @@ export class HubScene2D extends Phaser.Scene {
       }).setOrigin(0.5, 0).setDepth(10);
 
       this.hubObjects.push({ x: obj.x, y: obj.y, action: obj.action, prompt: null });
-      
+
       this.obstacleGroup.create(obj.x, obj.y + 10, 'wall_gallery').setDisplaySize(60, 20).refreshBody().setVisible(false);
     }
 
@@ -145,17 +155,17 @@ export class HubScene2D extends Phaser.Scene {
     this.buildCanvases();
 
     // ── Hint text ──────────────────────────────────────────────────────────
-    this.add.text(HUB_SIZE / 2, HUB_SIZE - 20, 'WASD / Arrow Keys  ·  SPACE to interact', {
+    this.add.text(HUB_WIDTH / 2, HUB_HEIGHT - 20, 'WASD / Arrow Keys  ·  SPACE to interact', {
       fontFamily: 'monospace', fontSize: '14px', color: '#666666',
       backgroundColor: '#00000055', padding: { x: 6, y: 3 },
     }).setOrigin(0.5, 1).setDepth(10);
 
     // ── Player ────────────────────────────────────────────────────────────
-    this.player = new RoomPlayer(this, HUB_SIZE / 2, HUB_SIZE - 200, true);
+    this.player = new RoomPlayer(this, HUB_WIDTH / 2, HUB_HEIGHT - 100, true);
     this.physics.add.collider(this.player.sprite, this.obstacleGroup);
 
     // ── Camera ────────────────────────────────────────────────────────────
-    this.cameras.main.setBounds(0, 0, HUB_SIZE, HUB_SIZE);
+    this.cameras.main.setBounds(0, 0, HUB_WIDTH, HUB_HEIGHT);
     this.cameras.main.startFollow(this.player.sprite, true, 0.08, 0.08);
 
     // ── Input ─────────────────────────────────────────────────────────────
@@ -167,11 +177,16 @@ export class HubScene2D extends Phaser.Scene {
     EventBus.on('modal-opened', () => {
       this.modalOpen = true;
       if (this.input.keyboard) this.input.keyboard.enabled = false;
-      (this.player.sprite.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+      if (this.player?.sprite?.body) {
+        (this.player.sprite.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+      }
     });
     EventBus.on('modal-closed', () => {
       this.modalOpen = false;
-      if (this.input.keyboard) this.input.keyboard.enabled = true;
+      if (this.input.keyboard) {
+        this.input.keyboard.enabled = true;
+        this.input.keyboard.resetKeys();
+      }
     });
 
     EventBus.emit('scene-ready');
@@ -179,23 +194,23 @@ export class HubScene2D extends Phaser.Scene {
 
   // ── Tile the back wall and floor across the full hub width ─────────────────
   private buildTiles(h: number): void {
-    const floorKey = this.textures.exists('floor_wood') ? 'floor_wood' : 'floor';
-    for (let x = 0; x < HUB_SIZE; x += 128) {
-      for (let y = WALL_H; y < h; y += 128) {
+    const floorKey = 'floor_wood';
+    for (let x = 0; x < HUB_WIDTH; x += 128) {
+      for (let y = WALL_H; y < HUB_HEIGHT; y += 128) {
         this.add.image(x, y, floorKey).setOrigin(0, 0).setDepth(0).setScale(2);
       }
     }
     const wallKey = this.textures.exists('wall_gallery') ? 'wall_gallery' : 'wall';
-    for (let x = 0; x < HUB_SIZE; x += 64) {
+    for (let x = 0; x < HUB_WIDTH; x += 128) {
       this.add.image(x, 0, wallKey).setOrigin(0, 0).setDepth(0);
     }
-    this.add.rectangle(HUB_SIZE / 2, HUB_SIZE / 2, HUB_SIZE, HUB_SIZE, 0x0d0d1a).setOrigin(0.5, 0.5).setDepth(-1);
+    this.add.rectangle(HUB_WIDTH / 2, HUB_HEIGHT / 2, HUB_WIDTH, HUB_HEIGHT, 0x0d0d1a).setOrigin(0.5, 0.5).setDepth(-1);
   }
 
   // ── Deep-red carpet runner ──────────────────────────────────────────────────
   private buildCarpet(h: number): void {
     const carpetW = 200;
-    const carpetX = HUB_SIZE / 2 - carpetW / 2;
+    const carpetX = HUB_WIDTH / 2 - carpetW / 2;
     // Gold border
     this.add.graphics()
       .fillStyle(0x8b6914, 1)
@@ -210,14 +225,15 @@ export class HubScene2D extends Phaser.Scene {
 
   // ── Side decorations at regular intervals ──────────────────────────────────
   private buildDecorations(): void {
+    // Plants along the far left and right walls so they don't block any walkways
     const plantKeys = ['plant1', 'plant2'];
-    // Plants along the organized walkway edges
-    for (let i = 0; i < SLOT_COUNT; i += 2) {
-      const col = i % COLS;
-      const row = Math.floor(i / COLS);
-      const px = START_X + col * SLOT_SPACING_X + SLOT_SPACING_X / 2;
-      const py = START_Y + row * SLOT_SPACING_Y - 40;
-      this.add.image(px, py, plantKeys[i % 2]).setOrigin(0.5, 1).setDepth(py / 1000).setScale(1.6);
+    for (let y = 200; y < HUB_HEIGHT - 100; y += 300) {
+      if (this.textures.exists('plant1')) {
+        this.add.image(50, y, 'plant1').setOrigin(0.5, 1).setDepth(y / 1000).setScale(1.8);
+      }
+      if (this.textures.exists('plant2')) {
+        this.add.image(HUB_WIDTH - 50, y + 100, 'plant2').setOrigin(0.5, 1).setDepth((y+100) / 1000).setScale(1.8);
+      }
     }
 
     // Pedestals in regular spots
@@ -243,7 +259,7 @@ export class HubScene2D extends Phaser.Scene {
     const allSlots: HubCanvas[] = [];
 
     // Wall slots (3 distributed slots along the back wall to not look completely bare)
-    const wallSpots = [HUB_SIZE * 0.25, HUB_SIZE * 0.75];
+    const wallSpots = [HUB_WIDTH * 0.25, HUB_WIDTH * 0.75];
     for (const wx of wallSpots) {
       const art = artworks[artIdx] ?? null;
       allSlots.push({ x: wx, interactY: 40, type: 'wall', artwork: art, prompt: null });
@@ -256,7 +272,7 @@ export class HubScene2D extends Phaser.Scene {
       const row = Math.floor(i / COLS);
       const slotX = START_X + col * SLOT_SPACING_X;
       const slotY = START_Y + row * SLOT_SPACING_Y;
-      
+
       const art = artworks[artIdx] ?? null;
       allSlots.push({ x: slotX, interactY: slotY, type: 'easel', artwork: art, prompt: null });
       if (art) artIdx++;
@@ -269,17 +285,17 @@ export class HubScene2D extends Phaser.Scene {
       if (canvas.type === 'wall') {
         this.renderWallCanvas(canvas);
       } else {
-        this.renderEaselCanvas(canvas, HUB_SIZE);
+        this.renderEaselCanvas(canvas, HUB_HEIGHT);
       }
     }
   }
 
   // ── Wall-mounted painting ────────────────────────────────────────────────────
   private renderWallCanvas(canvas: HubCanvas): void {
-    const cx   = canvas.x;
-    const cy   = 40; // vertical center on the back wall tile
-    const fw   = 100;
-    const fh   = 76;
+    const cx = canvas.x;
+    const cy = 40; // vertical center on the back wall tile
+    const fw = 100;
+    const fh = 76;
 
     const g = this.add.graphics().setDepth(2);
 
@@ -320,14 +336,14 @@ export class HubScene2D extends Phaser.Scene {
 
   // ── Free-standing easel painting ─────────────────────────────────────────────
   private renderEaselCanvas(canvas: HubCanvas, h: number): void {
-    const cx     = canvas.x;
-    const cy     = canvas.interactY;   // easel base/interaction y
-    const fw     = 90;
-    const fh     = 72;
-    const postH  = 55;
-    const baseW  = 68;
-    const frameTopY  = cy - postH - fh;      // top of the canvas frame
-    const frameCY    = frameTopY + fh / 2;   // centre of the frame
+    const cx = canvas.x;
+    const cy = canvas.interactY;   // easel base/interaction y
+    const fw = 90;
+    const fh = 72;
+    const postH = 55;
+    const baseW = 68;
+    const frameTopY = cy - postH - fh;      // top of the canvas frame
+    const frameCY = frameTopY + fh / 2;   // centre of the frame
 
     // Depth: higher y = closer = drawn on top
     const depth = 3 + Math.floor(cy / h * 4); // 3..7
@@ -381,9 +397,10 @@ export class HubScene2D extends Phaser.Scene {
       g.fillRect(cx - fw / 2 + 5, frameTopY + 5, fw - 10, fh - 10);
     }
 
-    // ── Thin physics collider at base (so player can't walk through) ─────
-    const blocker = this.obstacleGroup.create(cx, cy, 'wall_gallery') as Phaser.Physics.Arcade.Image;
-    blocker.setVisible(false).setDisplaySize(baseW, 12).refreshBody();
+    // ── Solid physics collider covering the whole easel (so player can't walk over it) ─────
+    const colliderHeight = 70;
+    const blocker = this.obstacleGroup.create(cx, cy - colliderHeight/2 + 10, 'wall_gallery') as Phaser.Physics.Arcade.Image;
+    blocker.setVisible(false).setDisplaySize(baseW + 10, colliderHeight).refreshBody();
   }
 
   // ── update ──────────────────────────────────────────────────────────────────

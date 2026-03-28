@@ -20,6 +20,8 @@ export class HubBoot extends Phaser.Scene {
     this.load.image('sconce3',          '/assets/props/sconce_03.png');
     this.load.image('pedestal1',        '/assets/props/pedestal_01.png');
     this.load.image('pedestal2',        '/assets/props/pedestal_02.png');
+    this.load.image('bench_wood',       '/assets/props/bench_wood.png');
+    this.load.image('bench_modern',     '/assets/props/bench_modern.png');
     this.load.image('statue_bust',      '/assets/props/statue_bust.png');
     this.load.image('statue_abstract',  '/assets/props/statue_abstract.png');
 

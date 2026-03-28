@@ -29,11 +29,11 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !isUploading) onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, isUploading]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -79,7 +79,7 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
 
   return (
     <div
-      onClick={onClose}
+      onClick={() => { if (!isUploading) onClose(); }}
       className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-hidden"
     >
       <div

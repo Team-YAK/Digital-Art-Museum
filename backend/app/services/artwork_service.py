@@ -20,8 +20,8 @@ from app.services.pixelizer import pixelize
 
 def validate_upload(position_index: int, room_id: int, db: Session) -> None:
     """Check that position_index is valid and the slot is empty."""
-    if position_index < 0 or position_index > 9:
-        raise HTTPException(status_code=400, detail="position_index must be 0-9")
+    if position_index < 0 or position_index > 24:
+        raise HTTPException(status_code=400, detail="position_index must be 0-24")
 
     existing = (
         db.query(Artwork)
