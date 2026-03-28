@@ -11,6 +11,13 @@ interface UploadModalProps {
   onUploaded: (artwork: Artwork) => void;
 }
 
+const panelBg = "#1a1208";
+const darkBg = "#0f0c04";
+const goldText = "#d4af37";
+const dimGold = "#8b6914";
+const lightGold = "#ffe99a";
+const shadow = "4px 4px 0px #000";
+
 export default function UploadModal({ positionIndex, username, onClose, onUploaded }: UploadModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,17 +48,14 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !title.trim()) return;
-
     setIsUploading(true);
     setError(null);
-
     try {
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("position_index", String(positionIndex));
       formData.append("image", file);
-
       const artwork = await uploadArtwork(username, formData);
       onUploaded(artwork);
     } catch (err) {
@@ -59,6 +63,18 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "8px 12px",
+    fontFamily: "monospace",
+    fontSize: "13px",
+    background: darkBg,
+    border: `2px solid ${dimGold}`,
+    color: lightGold,
+    outline: "none",
+    boxSizing: "border-box",
   };
 
   return (
@@ -71,69 +87,96 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.85)",
-        backdropFilter: "blur(8px)",
-        animation: "fadeIn 0.2s ease-out",
+        backgroundColor: "rgba(0,0,0,0.8)",
+        fontFamily: "monospace",
+        imageRendering: "pixelated",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "linear-gradient(145deg, #1a1a2e, #16213e)",
-          border: "1px solid #d4af3744",
-          borderRadius: "16px",
-          padding: "28px",
-          maxWidth: "480px",
-          width: "90%",
-          boxShadow: "0 24px 80px rgba(212, 175, 55, 0.15)",
-          animation: "slideUp 0.3s ease-out",
+          background: panelBg,
+          border: `4px solid ${goldText}`,
+          boxShadow: "8px 8px 0px #000, inset 0 0 0 2px #2a1f0a",
+          padding: 0,
+          maxWidth: 460,
+          width: "92%",
+          overflow: "hidden",
         }}
       >
-        <h2
+        {/* Header */}
+        <div
           style={{
-            fontFamily: "monospace",
-            fontSize: "20px",
-            color: "#d4af37",
-            margin: "0 0 20px 0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "10px 14px",
+            background: "linear-gradient(180deg, #2a1f0a 0%, #1a1208 100%)",
+            borderBottom: `3px solid ${goldText}`,
           }}
         >
-          Upload Artwork — Slot {positionIndex + 1}
-        </h2>
+          <span style={{ fontSize: 18 }}>🖼️</span>
+          <span
+            style={{
+              fontFamily: "monospace",
+              fontSize: 13,
+              fontWeight: "bold",
+              color: goldText,
+              textShadow: "1px 1px 0 #000",
+              letterSpacing: 1,
+              textTransform: "uppercase",
+            }}
+          >
+            Upload Artwork — Slot {positionIndex + 1}
+          </span>
+          <button
+            onClick={onClose}
+            style={{
+              fontFamily: "monospace",
+              fontSize: 13,
+              fontWeight: "bold",
+              color: goldText,
+              background: "#2a1f0a",
+              border: `2px solid ${goldText}`,
+              cursor: "pointer",
+              padding: "2px 8px",
+              textShadow: "1px 1px 0 #000",
+            }}
+          >
+            X
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* File input area */}
+        {/* Body */}
+        <form onSubmit={handleSubmit} style={{ padding: "16px 18px", background: panelBg }}>
+          {/* File drop zone */}
           <div
             onClick={() => fileInputRef.current?.click()}
             style={{
-              border: "2px dashed #444",
-              borderRadius: "12px",
-              padding: "24px",
+              border: `2px dashed ${dimGold}`,
+              background: darkBg,
+              padding: "20px",
               textAlign: "center",
               cursor: "pointer",
-              marginBottom: "16px",
-              transition: "border-color 0.2s",
-              minHeight: "120px",
+              marginBottom: 14,
+              minHeight: 110,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              boxShadow: "inset 2px 2px 0 #000",
             }}
           >
             {preview ? (
               <img
                 src={preview}
                 alt="Preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "200px",
-                  borderRadius: "8px",
-                  objectFit: "contain",
-                }}
+                style={{ maxWidth: "100%", maxHeight: 180, display: "block", imageRendering: "pixelated" }}
               />
             ) : (
               <div>
-                <div style={{ fontSize: "36px", marginBottom: "8px" }}>🖼️</div>
-                <p style={{ fontFamily: "monospace", color: "#888", fontSize: "13px", margin: 0 }}>
-                  Click to select an image
+                <div style={{ fontSize: 32, marginBottom: 6 }}>+</div>
+                <p style={{ fontFamily: "monospace", color: dimGold, fontSize: 12, margin: 0, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Click to select image
                 </p>
               </div>
             )}
@@ -146,79 +189,58 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
             />
           </div>
 
-          {/* Title input */}
+          {/* Title */}
+          <label style={{ display: "block", fontSize: 10, color: goldText, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+            Title *
+          </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Artwork title (required)"
+            onKeyDown={(e) => e.stopPropagation()}
+            placeholder="> Artwork title..."
             required
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              background: "#0d0d1a",
-              color: "#e0e0e0",
-              fontFamily: "monospace",
-              fontSize: "14px",
-              marginBottom: "12px",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
+            style={{ ...inputStyle, marginBottom: 12 }}
           />
 
-          {/* Description textarea */}
+          {/* Description */}
+          <label style={{ display: "block", fontSize: 10, color: goldText, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+            Description
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
+            onKeyDown={(e) => e.stopPropagation()}
+            placeholder="> Optional description..."
             rows={3}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              background: "#0d0d1a",
-              color: "#e0e0e0",
-              fontFamily: "monospace",
-              fontSize: "14px",
-              marginBottom: "16px",
-              outline: "none",
-              resize: "vertical",
-              boxSizing: "border-box",
-            }}
+            style={{ ...inputStyle, resize: "vertical", marginBottom: 14 }}
           />
 
-          {/* Error display */}
+          {/* Error */}
           {error && (
-            <p
-              style={{
-                color: "#ff4444",
-                fontFamily: "monospace",
-                fontSize: "12px",
-                marginBottom: "12px",
-              }}
-            >
-              {error}
+            <p style={{ color: "#c0392b", fontFamily: "monospace", fontSize: 12, marginBottom: 12, textShadow: "1px 1px 0 #000" }}>
+              [Error] {error}
             </p>
           )}
 
           {/* Buttons */}
-          <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
               disabled={isUploading}
               style={{
                 fontFamily: "monospace",
-                fontSize: "13px",
-                color: "#aaa",
-                background: "transparent",
-                border: "1px solid #444",
-                borderRadius: "8px",
-                padding: "8px 20px",
+                fontSize: 12,
+                fontWeight: "bold",
+                color: dimGold,
+                background: darkBg,
+                border: `2px solid ${dimGold}`,
                 cursor: "pointer",
+                padding: "8px 18px",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                boxShadow: "2px 2px 0 #000",
               }}
             >
               Cancel
@@ -228,34 +250,24 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
               disabled={!file || !title.trim() || isUploading}
               style={{
                 fontFamily: "monospace",
-                fontSize: "13px",
-                color: "#1a1a2e",
-                background: isUploading ? "#888" : "linear-gradient(135deg, #d4af37, #f5d061)",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px 24px",
-                cursor: !file || !title.trim() || isUploading ? "not-allowed" : "pointer",
+                fontSize: 12,
                 fontWeight: "bold",
+                color: !file || !title.trim() || isUploading ? "#555" : panelBg,
+                background: !file || !title.trim() || isUploading ? "#2a1f0a" : goldText,
+                border: `2px solid ${dimGold}`,
+                cursor: !file || !title.trim() || isUploading ? "not-allowed" : "pointer",
+                padding: "8px 24px",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                boxShadow: !file || !title.trim() || isUploading ? "none" : shadow,
                 opacity: !file || !title.trim() ? 0.5 : 1,
-                transition: "all 0.2s",
               }}
             >
-              {isUploading ? "Uploading…" : "Upload"}
+              {isUploading ? "Uploading..." : "Upload"}
             </button>
           </div>
         </form>
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

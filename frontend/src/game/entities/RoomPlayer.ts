@@ -13,6 +13,7 @@ export class RoomPlayer {
     // Create sprite using the first walk_down frame
     this.sprite = scene.physics.add.sprite(x, y, 'walk_down_1');
     this.sprite.setScale(2);
+    this.sprite.setDepth(6);
     this.sprite.setCollideWorldBounds(true);
     (this.sprite.body as Phaser.Physics.Arcade.Body).setGravityY(0);
 
@@ -44,6 +45,13 @@ export class RoomPlayer {
   }
 
   update(): void {
+    // Never process movement when a text input / textarea has keyboard focus
+    const tag = (document.activeElement?.tagName ?? '').toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+      this.sprite.setVelocity(0, 0);
+      return;
+    }
+
     const left = this.cursors?.left?.isDown || this.wasd?.A?.isDown;
     const right = this.cursors?.right?.isDown || this.wasd?.D?.isDown;
     const up = this.allowVertical && (this.cursors?.up?.isDown || this.wasd?.W?.isDown);
