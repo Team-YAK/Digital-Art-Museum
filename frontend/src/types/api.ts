@@ -32,3 +32,25 @@ export interface ChatSuggestion {
   username: string;
   reason: string;
 }
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  username: string;
+}
+
+export interface CommentData {
+  id: number;
+  artwork_id: number;
+  user_id: number;
+  username: string;
+  parent_id: number | null;
+  text: string;
+  created_at: string;
+  replies: CommentData[];
+}
+
+export interface LikeData {
+  liked: boolean;
+  count: number;
+}

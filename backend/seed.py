@@ -79,7 +79,7 @@ def _make_starry(width: int, height: int) -> Image.Image:
     # Stars
     for _ in range(80):
         x, y = random.randint(0, width), random.randint(0, height // 2)
-        d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(255, 255, 220)0)
+        d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(255, 255, 220))
     # Moon
     d.ellipse([width - 90, 20, width - 30, 80], fill=(255, 250, 180))
     # Hills
@@ -284,7 +284,8 @@ def seed():
             user = existing_user
             room = user.room
         else:
-            user = User(username=uname)
+            from app.auth import hash_password
+            user = User(username=uname, password_hash=hash_password("demo"))
             db.add(user)
             db.flush()
             room = Room(owner_user_id=user.id, artist_description=user_data["artist_description"])

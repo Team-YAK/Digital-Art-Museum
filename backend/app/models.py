@@ -10,9 +10,12 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     room = relationship("Room", back_populates="owner", uselist=False)
+    comments = relationship("Comment", back_populates="author")
+    likes = relationship("Like", back_populates="user")
 
 
 class Room(Base):
@@ -39,7 +42,40 @@ class Artwork(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     room = relationship("Room", back_populates="artworks")
+    comments = relationship("Comment", back_populates="artwork", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="artwork", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("room_id", "position_index", name="uq_room_position"),
+    )
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    artwork_id = Column(Integer, ForeignKey("artworks.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    parent_id = Column(Integer, ForeignKey("comments.id"), nullable=True)
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    artwork = relationship("Artwork", back_populates="comments")
+    author = relationship("User", back_populates="comments")
+    parent = relationship("Comment", remote_side=[id], backref="replies")
+
+
+class Like(Base):
+    __tablename__ = "likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    artwork_id = Column(Integer, ForeignKey("artworks.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    artwork = relationship("Artwork", back_populates="likes")
+    user = relationship("User", back_populates="likes")
+
+    __table_args__ = (
+        UniqueConstraint("artwork_id", "user_id", name="uq_artwork_user_like"),
     )

@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Header
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User, Artwork
 from app.schemas import ArtworkResponse
 from app.services.artwork_service import create_artwork, delete_artwork
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/api/rooms", tags=["artworks"])
 
@@ -44,11 +45,10 @@ def upload_artwork(
     description: str = Form(""),
     position_index: int = Form(...),
     image: UploadFile = File(...),
-    x_username: str = Header(alias="X-Username"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Ownership check
-    if x_username.lower() != username.lower():
+    if current_user.username != username.lower():
         raise HTTPException(status_code=403, detail="You can only upload to your own room")
 
     artwork = create_artwork(
@@ -66,10 +66,10 @@ def upload_artwork(
 def remove_artwork(
     username: str,
     position_index: int,
-    x_username: str = Header(alias="X-Username"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if x_username.lower() != username.lower():
+    if current_user.username != username.lower():
         raise HTTPException(status_code=403, detail="You can only delete from your own room")
 
     delete_artwork(username=username, position_index=position_index, db=db)

@@ -1,10 +1,30 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const TOKEN_KEY = "museum_token";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
       ...options?.headers,
     },
   });
@@ -15,13 +35,45 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-import type { User, Room, Artwork, ChatResponse } from "@/types/api";
+import type {
+  User,
+  Room,
+  Artwork,
+  ChatResponse,
+  TokenResponse,
+  CommentData,
+  LikeData,
+} from "@/types/api";
+
+// Auth
+export async function register(
+  username: string,
+  password: string
+): Promise<TokenResponse> {
+  return request<TokenResponse>("/api/users/register", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function login(
+  username: string,
+  password: string
+): Promise<TokenResponse> {
+  return request<TokenResponse>("/api/users/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
 
 // Users
-export async function createUser(username: string): Promise<User> {
+export async function createUser(
+  username: string,
+  password: string
+): Promise<User> {
   return request<User>("/api/users", {
     method: "POST",
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ username, password }),
   });
 }
 
@@ -53,11 +105,15 @@ export async function uploadArtwork(
   username: string,
   formData: FormData
 ): Promise<Artwork> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetch(
     `${API_URL}/api/rooms/${encodeURIComponent(username)}/artworks`,
     {
       method: "POST",
-      headers: { "X-Username": username },
+      headers,
       body: formData,
     }
   );
@@ -72,11 +128,15 @@ export async function deleteArtwork(
   username: string,
   positionIndex: number
 ): Promise<void> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   await fetch(
     `${API_URL}/api/rooms/${encodeURIComponent(username)}/artworks/${positionIndex}`,
     {
       method: "DELETE",
-      headers: { "X-Username": username },
+      headers,
     }
   );
 }
@@ -86,5 +146,32 @@ export async function chatWithGuide(query: string): Promise<ChatResponse> {
   return request<ChatResponse>("/api/chat/guide", {
     method: "POST",
     body: JSON.stringify({ query }),
+  });
+}
+
+// Comments
+export async function getComments(artworkId: number): Promise<CommentData[]> {
+  return request<CommentData[]>(`/api/artworks/${artworkId}/comments`);
+}
+
+export async function addComment(
+  artworkId: number,
+  text: string,
+  parentId?: number
+): Promise<CommentData> {
+  return request<CommentData>(`/api/artworks/${artworkId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ text, parent_id: parentId || null }),
+  });
+}
+
+// Likes
+export async function getLikes(artworkId: number): Promise<LikeData> {
+  return request<LikeData>(`/api/artworks/${artworkId}/likes`);
+}
+
+export async function toggleLike(artworkId: number): Promise<LikeData> {
+  return request<LikeData>(`/api/artworks/${artworkId}/likes`, {
+    method: "POST",
   });
 }

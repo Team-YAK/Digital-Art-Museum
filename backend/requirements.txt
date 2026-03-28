@@ -5,3 +5,5 @@ pillow
 python-multipart
 openai
 python-dotenv
+bcrypt
+python-jose[cryptography]

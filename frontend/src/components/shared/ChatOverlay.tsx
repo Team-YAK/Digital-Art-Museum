@@ -16,7 +16,7 @@ interface ChatOverlayProps {
 
 export function ChatOverlay({ onClose }: ChatOverlayProps) {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "guide", text: "Welcome! I'm the museum guide. Ask me about any room or artist, or I can take you somewhere interesting!" },
+    { role: "guide", text: "Welcome, traveler! I am the museum guide. Ask me about any gallery or artist, and I shall point the way!" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +28,6 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Close on ESC
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
@@ -51,7 +50,7 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "guide", text: "I seem to be having trouble right now. Try again in a moment!" },
+        { role: "guide", text: "My crystal ball is foggy... Try again in a moment!" },
       ]);
     } finally {
       setIsLoading(false);
@@ -59,40 +58,155 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+    >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.7)",
+          imageRendering: "pixelated",
+        }}
+      />
 
       {/* Panel */}
-      <div className="relative w-full max-w-md mx-4 bg-gray-900 border border-purple-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: 420,
+          margin: "0 16px",
+          background: "#1a1208",
+          border: "4px solid #d4af37",
+          boxShadow: "8px 8px 0px #000, inset 0 0 0 2px #2a1f0a, 0 0 30px rgba(212,175,55,0.15)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          imageRendering: "pixelated",
+          fontFamily: "monospace",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-400" />
-            <span className="font-mono text-white font-bold">Guide NPC</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "10px 14px",
+            background: "linear-gradient(180deg, #2a1f0a 0%, #1a1208 100%)",
+            borderBottom: "3px solid #d4af37",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 18 }}>🧙</span>
+            <span
+              style={{
+                fontFamily: "monospace",
+                fontSize: 14,
+                fontWeight: "bold",
+                color: "#d4af37",
+                textShadow: "1px 1px 0 #000",
+                letterSpacing: 1,
+                textTransform: "uppercase",
+              }}
+            >
+              Museum Guide
+            </span>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white font-mono text-lg">✕</button>
+          <button
+            onClick={onClose}
+            style={{
+              fontFamily: "monospace",
+              fontSize: 14,
+              fontWeight: "bold",
+              color: "#d4af37",
+              background: "#2a1f0a",
+              border: "2px solid #d4af37",
+              cursor: "pointer",
+              padding: "2px 8px",
+              textShadow: "1px 1px 0 #000",
+            }}
+          >
+            X
+          </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-80 min-h-48">
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: 12,
+            maxHeight: 300,
+            minHeight: 180,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            background: "#0f0c04",
+          }}
+        >
           {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+              }}
+            >
               <div
-                className={`max-w-xs px-3 py-2 rounded-lg font-mono text-sm ${
-                  msg.role === "user"
-                    ? "bg-purple-700 text-white"
-                    : "bg-gray-700 text-gray-100"
-                }`}
+                style={{
+                  maxWidth: "85%",
+                  padding: "8px 10px",
+                  fontFamily: "monospace",
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  border: msg.role === "user"
+                    ? "2px solid #8b6914"
+                    : "2px solid #d4af37",
+                  background: msg.role === "user"
+                    ? "#2a1f0a"
+                    : "#1a1510",
+                  color: msg.role === "user"
+                    ? "#e8d5a3"
+                    : "#ffe99a",
+                  boxShadow: "3px 3px 0px #000",
+                  textShadow: "1px 1px 0 rgba(0,0,0,0.5)",
+                }}
               >
+                {msg.role === "guide" && (
+                  <span style={{ color: "#d4af37", fontWeight: "bold", fontSize: 11, display: "block", marginBottom: 2 }}>
+                    GUIDE:
+                  </span>
+                )}
                 {msg.text}
               </div>
             </div>
           ))}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-700 text-gray-400 px-3 py-2 rounded-lg font-mono text-sm animate-pulse">
-                ...
+            <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <div
+                style={{
+                  padding: "8px 14px",
+                  fontFamily: "monospace",
+                  fontSize: 14,
+                  border: "2px solid #d4af37",
+                  background: "#1a1510",
+                  color: "#d4af37",
+                  boxShadow: "3px 3px 0px #000",
+                  animation: "retro-blink 0.6s step-start infinite",
+                }}
+              >
+                ▌
               </div>
             </div>
           )}
@@ -101,44 +215,98 @@ export function ChatOverlay({ onClose }: ChatOverlayProps) {
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
-          <div className="px-4 pb-2 flex flex-wrap gap-2">
+          <div
+            style={{
+              padding: "8px 12px",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+              borderTop: "2px solid #2a1f0a",
+              background: "#1a1208",
+            }}
+          >
             {suggestions.map((s, i) => (
               <button
                 key={i}
                 onClick={() => { onClose(); router.push(`/room/${s.username}`); }}
-                className="px-3 py-1 bg-purple-900 hover:bg-purple-700 border border-purple-600
-                           rounded-full font-mono text-xs text-white transition-colors"
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 11,
+                  fontWeight: "bold",
+                  color: "#1a1208",
+                  background: "#d4af37",
+                  border: "2px solid #8b6914",
+                  cursor: "pointer",
+                  padding: "4px 10px",
+                  boxShadow: "2px 2px 0px #000",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
               >
-                Visit {s.username}
+                → @{s.username}
               </button>
             ))}
           </div>
         )}
 
         {/* Input */}
-        <div className="flex gap-2 p-3 border-t border-gray-700">
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            padding: "10px 12px",
+            borderTop: "3px solid #d4af37",
+            background: "#1a1208",
+          }}
+        >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
-            placeholder="Ask me anything..."
+            placeholder="> Ask me anything..."
             disabled={isLoading}
-            className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2
-                       font-mono text-sm text-white placeholder-gray-500
-                       focus:outline-none focus:border-purple-500 disabled:opacity-50"
             autoFocus
+            style={{
+              flex: 1,
+              fontFamily: "monospace",
+              fontSize: 13,
+              background: "#0f0c04",
+              border: "2px solid #8b6914",
+              padding: "8px 10px",
+              color: "#ffe99a",
+              outline: "none",
+              textShadow: "1px 1px 0 rgba(0,0,0,0.5)",
+              opacity: isLoading ? 0.5 : 1,
+            }}
           />
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40
-                       rounded-lg font-mono text-sm text-white transition-colors"
+            style={{
+              fontFamily: "monospace",
+              fontSize: 12,
+              fontWeight: "bold",
+              color: isLoading || !input.trim() ? "#555" : "#1a1208",
+              background: isLoading || !input.trim() ? "#2a1f0a" : "#d4af37",
+              border: "2px solid #8b6914",
+              cursor: isLoading || !input.trim() ? "not-allowed" : "pointer",
+              padding: "8px 14px",
+              boxShadow: isLoading || !input.trim() ? "none" : "3px 3px 0px #000",
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
           >
             Send
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes retro-blink {
+          50% { opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }

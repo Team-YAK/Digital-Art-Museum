@@ -104,19 +104,31 @@ export class HubScene2D extends Phaser.Scene {
     ];
 
     for (const obj of hubObjects) {
-      // Body rectangle
-      const rect = this.add.rectangle(obj.x, obj.y, obj.width, obj.height, obj.color, 0.85);
-      rect.setStrokeStyle(2, 0xd4af37);
-      rect.setDepth(3);
+      let rect: Phaser.GameObjects.Rectangle;
 
-      // Head (small circle above body)
-      if (obj.action === 'chat') {
-        this.add.circle(obj.x, obj.y - obj.height / 2 - 15, 18, obj.color, 0.9)
-          .setStrokeStyle(2, 0xd4af37).setDepth(3);
+      if (obj.action === 'chat' && this.textures.exists('wizard')) {
+        // Use wizard sprite for Guide NPC
+        const wizardSprite = this.add.image(obj.x, obj.y, 'wizard');
+        wizardSprite.setScale(2);
+        wizardSprite.setDepth(3);
+        // Invisible rect for proximity detection sizing
+        rect = this.add.rectangle(obj.x, obj.y, obj.width, obj.height, obj.color, 0);
+        rect.setDepth(3);
+      } else {
+        // Fallback: colored rectangle
+        rect = this.add.rectangle(obj.x, obj.y, obj.width, obj.height, obj.color, 0.85);
+        rect.setStrokeStyle(2, 0xd4af37);
+        rect.setDepth(3);
+
+        if (obj.action === 'chat') {
+          this.add.circle(obj.x, obj.y - obj.height / 2 - 15, 18, obj.color, 0.9)
+            .setStrokeStyle(2, 0xd4af37).setDepth(3);
+        }
       }
 
       // Label above
-      this.add.text(obj.x, obj.y - obj.height / 2 - (obj.action === 'chat' ? 45 : 16), obj.label, {
+      const labelOffset = obj.action === 'chat' ? 45 : 16;
+      this.add.text(obj.x, obj.y - obj.height / 2 - labelOffset, obj.label, {
         fontFamily: 'monospace',
         fontSize: '13px',
         color: '#ffe066',

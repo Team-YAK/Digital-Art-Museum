@@ -4,6 +4,18 @@ from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    username: str
 
 
 class UserResponse(BaseModel):
@@ -55,3 +67,24 @@ class ChatSuggestion(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     suggestions: list[ChatSuggestion]
+
+
+class CommentCreate(BaseModel):
+    text: str
+    parent_id: Optional[int] = None
+
+
+class CommentResponse(BaseModel):
+    id: int
+    artwork_id: int
+    user_id: int
+    username: str
+    parent_id: Optional[int]
+    text: str
+    created_at: str
+    replies: list["CommentResponse"] = []
+
+
+class LikeResponse(BaseModel):
+    liked: bool
+    count: int
