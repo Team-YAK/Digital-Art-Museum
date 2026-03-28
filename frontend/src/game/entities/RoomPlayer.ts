@@ -6,8 +6,10 @@ export class RoomPlayer {
   private wasd!: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key };
   private lastDirection: string = 'down';
   private speed = 200;
+  private allowVertical: boolean;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, allowVertical = false) {
+    this.allowVertical = allowVertical;
     // Create sprite using the first walk_down frame
     this.sprite = scene.physics.add.sprite(x, y, 'walk_down_1');
     this.sprite.setScale(2);
@@ -44,23 +46,27 @@ export class RoomPlayer {
   update(): void {
     const left = this.cursors?.left?.isDown || this.wasd?.A?.isDown;
     const right = this.cursors?.right?.isDown || this.wasd?.D?.isDown;
+    const up = this.allowVertical && (this.cursors?.up?.isDown || this.wasd?.W?.isDown);
+    const down = this.allowVertical && (this.cursors?.down?.isDown || this.wasd?.S?.isDown);
 
-    if (left) {
-      this.sprite.setVelocityX(-this.speed);
-      this.sprite.setVelocityY(0);
-      this.sprite.play('walk-left', true);
-      this.lastDirection = 'left';
-    } else if (right) {
-      this.sprite.setVelocityX(this.speed);
-      this.sprite.setVelocityY(0);
-      this.sprite.play('walk-right', true);
-      this.lastDirection = 'right';
-    } else {
-      this.sprite.setVelocityX(0);
-      this.sprite.setVelocityY(0);
+    let vx = 0;
+    let vy = 0;
+    if (left) vx = -this.speed;
+    else if (right) vx = this.speed;
+    if (up) vy = -this.speed;
+    else if (down) vy = this.speed;
+
+    this.sprite.setVelocity(vx, vy);
+
+    if (vx < 0) { this.sprite.setFlipX(true); this.sprite.play('walk-right', true); this.lastDirection = 'left'; }
+    else if (vx > 0) { this.sprite.setFlipX(false); this.sprite.play('walk-right', true); this.lastDirection = 'right'; }
+    else if (vy < 0) { this.sprite.setFlipX(false); this.sprite.play('walk-up', true); this.lastDirection = 'up'; }
+    else if (vy > 0) { this.sprite.setFlipX(false); this.sprite.play('walk-down', true); this.lastDirection = 'down'; }
+    else {
       this.sprite.stop();
-      // Show idle frame (first frame of last direction)
-      this.sprite.setTexture(`walk_${this.lastDirection}_1`);
+      const idleDir = this.lastDirection === 'left' ? 'right' : this.lastDirection;
+      this.sprite.setTexture(`walk_${idleDir}_1`);
+      this.sprite.setFlipX(this.lastDirection === 'left');
     }
   }
 

@@ -154,8 +154,8 @@ export class RoomScene extends Phaser.Scene {
           artworkId: artwork.id,
           title: artwork.title,
           description: artwork.description,
-          imageUrl: `${API_URL}/${artwork.image_url}`,
-          pixelImageUrl: `${API_URL}/${artwork.pixel_image_url}`,
+          imageUrl: `${API_URL}${artwork.image_url}`,
+          pixelImageUrl: `${API_URL}${artwork.pixel_image_url}`,
         };
         EventBus.emit('interact-art', payload);
       } else if (this.isOwner) {
@@ -177,8 +177,8 @@ export class RoomScene extends Phaser.Scene {
         room_id: this.roomData.id,
         title: payload.title,
         description: '',
-        image_url: payload.pixelImageUrl.replace(`${API_URL}/`, ''),
-        pixel_image_url: payload.pixelImageUrl.replace(`${API_URL}/`, ''),
+        image_url: payload.pixelImageUrl.replace(API_URL, ''),
+        pixel_image_url: payload.pixelImageUrl.replace(API_URL, ''),
         position_index: payload.positionIndex,
         created_at: new Date().toISOString(),
       });

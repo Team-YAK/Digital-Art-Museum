@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useUser } from "@/hooks/useUser";
 import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import { ChatOverlay } from "@/components/shared/ChatOverlay";
+import { EventBus } from "@/game/EventBus";
 
 const HubScene = dynamic(() => import("@/components/hub/HubScene"), {
   ssr: false,
@@ -30,7 +31,7 @@ export default function HubPage() {
       {/* WASD hint */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
         <span className="font-mono text-xs text-gray-400 bg-black/50 px-3 py-1 rounded-full">
-          WASD / Arrow Keys to move · Click portals or NPC to interact
+          WASD / Arrow Keys to move · SPACE to interact
         </span>
       </div>
 
@@ -41,7 +42,7 @@ export default function HubPage() {
 
       <HubScene username={username} onOpenChat={() => setChatOpen(true)} />
 
-      {chatOpen && <ChatOverlay onClose={() => setChatOpen(false)} />}
+      {chatOpen && <ChatOverlay onClose={() => { setChatOpen(false); EventBus.emit("modal-closed"); }} />}
     </div>
   );
 }
