@@ -5,7 +5,7 @@ import os
 
 from app.config import UPLOAD_DIR
 from app.database import create_tables
-from app.routers import users, rooms, artworks
+from app.routers import users, rooms, artworks, chat
 
 app = FastAPI(title="Digital Art Museum API")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 app.include_router(users.router)
 app.include_router(rooms.router)
 app.include_router(artworks.router)
+app.include_router(chat.router)
 
 # Static file serving for uploads
 os.makedirs(UPLOAD_DIR, exist_ok=True)
