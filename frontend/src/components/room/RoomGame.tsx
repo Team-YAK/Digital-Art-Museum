@@ -65,14 +65,14 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
     gameRef.current = game;
 
     // Listen for Phaser events
-    EventBus.on("interact-art", handleArtInteract);
-    EventBus.on("interact-empty-slot", handleEmptySlot);
-    EventBus.on("interact-bio", handleBioInteract);
+    EventBus.on("interact-art", (payload: any) => handleArtInteract(payload));
+    EventBus.on("interact-empty-slot", (payload: any) => handleEmptySlot(payload));
+    EventBus.on("interact-bio", (payload: any) => handleBioInteract(payload));
 
     return () => {
-      EventBus.off("interact-art", handleArtInteract);
-      EventBus.off("interact-empty-slot", handleEmptySlot);
-      EventBus.off("interact-bio", handleBioInteract);
+      EventBus.removeAllListeners("interact-art");
+      EventBus.removeAllListeners("interact-empty-slot");
+      EventBus.removeAllListeners("interact-bio");
 
       if (gameRef.current) {
         gameRef.current.destroy(true);

@@ -254,271 +254,106 @@ export default function ArtModal({
   return (
     <div
       onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        ...pixelBox,
-      }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-hidden"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: panelBg,
-          border: "4px solid #d4af37",
-          padding: 0,
-          maxWidth: 540,
-          width: "92%",
-          maxHeight: "90vh",
-          overflow: "hidden",
-          boxShadow: "8px 8px 0px #000, inset 0 0 0 2px #2a1f0a",
-          display: "flex",
-          flexDirection: "column",
-          imageRendering: "pixelated",
-        }}
+        className="glass-panel relative w-full max-w-2xl max-h-[90vh] rounded-2xl flex flex-col shadow-[0_0_50px_rgba(6,182,212,0.15)] border border-white/10 overflow-hidden animate-fade-in-up"
       >
-        {/* Image section */}
-        <div
-          style={{
-            position: "relative",
-            background: darkBg,
-            borderBottom: `3px solid ${goldText}`,
-          }}
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 glass-button w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
         >
+          ✕
+        </button>
+
+        {/* Image Section */}
+        <div className="relative w-full bg-black/60 border-b border-white/10 flex items-center justify-center p-4">
           <img
             src={artwork.imageUrl}
             alt={artwork.title}
-            style={{
-              width: "100%",
-              maxHeight: 300,
-              objectFit: "contain",
-              display: "block",
-              background: "#000",
-            }}
+            className="max-h-[35vh] w-auto object-contain rounded-lg shadow-2xl"
           />
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              background: panelBg,
-              border: `2px solid ${goldText}`,
-              color: goldText,
-              fontSize: 14,
-              fontWeight: "bold",
-              cursor: "pointer",
-              padding: "2px 10px",
-              fontFamily: "monospace",
-              boxShadow: shadow,
-              textShadow: "1px 1px 0 #000",
-            }}
-          >
-            X
-          </button>
         </div>
 
-        {/* Content section */}
-        <div
-          style={{
-            padding: "12px 16px",
-            overflowY: "auto",
-            maxHeight: "calc(90vh - 300px)",
-          }}
-        >
-          {/* Title + Like row */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 8,
-              borderBottom: `2px solid ${dimGold}`,
-              paddingBottom: 8,
-            }}
-          >
-            <h2
-              style={{
-                fontFamily: "monospace",
-                fontSize: 16,
-                color: goldText,
-                margin: 0,
-                fontWeight: "bold",
-                textShadow: "2px 2px 0 #000",
-                letterSpacing: 1,
-                textTransform: "uppercase",
-              }}
-            >
+        {/* Content Section */}
+        <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+          <div className="flex items-start justify-between mb-4">
+            <h2 className="text-3xl font-bold text-white tracking-tight text-gradient">
               {artwork.title}
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+            <div className="flex flex-col items-end">
               <button
                 onClick={handleLike}
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: 14,
-                  fontWeight: "bold",
-                  color: likeData.liked ? "#e74c3c" : dimGold,
-                  background: likeData.liked ? "rgba(231,76,60,0.1)" : "transparent",
-                  border: `2px solid ${likeData.liked ? "#e74c3c" : dimGold}`,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "4px 10px",
-                  boxShadow: "2px 2px 0 #000",
-                  textShadow: "1px 1px 0 #000",
-                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
+                  likeData.liked
+                    ? "bg-red-500/20 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                    : "bg-white/5 border-white/20 text-white/80 hover:bg-white/10 hover:border-white/40"
+                }`}
               >
-                {likeData.liked ? "\u2764" : "\u2661"} {likeData.count}
+                <span className="text-lg">{likeData.liked ? "♥" : "♡"}</span>
+                <span className="font-medium">{likeData.count}</span>
               </button>
-              {likeError && (
-                <span style={{ fontFamily: "monospace", fontSize: 9, color: "#e74c3c", textShadow: "1px 1px 0 #000" }}>
-                  {likeError}
-                </span>
-              )}
+              {likeError && <span className="text-xs tracking-wider text-red-400 mt-1">{likeError}</span>}
             </div>
           </div>
 
-          {/* Description */}
           {artwork.description && (
-            <p
-              style={{
-                fontFamily: "monospace",
-                fontSize: 12,
-                color: "#bba866",
-                lineHeight: 1.6,
-                margin: "0 0 10px 0",
-                textShadow: "1px 1px 0 rgba(0,0,0,0.5)",
-              }}
-            >
+            <p className="text-gray-300 leading-relaxed mb-6 font-light">
               {artwork.description}
             </p>
           )}
 
-          {/* Delete button for owner */}
           {isOwner && onDelete && artwork.positionIndex !== undefined && (
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              style={{
-                fontFamily: "monospace",
-                fontSize: 11,
-                fontWeight: "bold",
-                color: "#c0392b",
-                background: "rgba(192, 57, 43, 0.08)",
-                border: "2px solid #c0392b44",
-                padding: "6px 14px",
-                cursor: isDeleting ? "not-allowed" : "pointer",
-                opacity: isDeleting ? 0.5 : 1,
-                marginBottom: 10,
-                boxShadow: "2px 2px 0 #000",
-                textTransform: "uppercase",
-                letterSpacing: 0.5,
-              }}
+              className="mb-8 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium transition-colors"
             >
-              {isDeleting ? "Removing..." : "[Remove Artwork]"}
+              {isDeleting ? "Removing..." : "Remove Artwork"}
             </button>
           )}
 
-          {/* Comments section */}
-          <div
-            style={{
-              borderTop: `3px solid ${goldText}`,
-              paddingTop: 10,
-              marginTop: 4,
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "monospace",
-                fontSize: 12,
-                fontWeight: "bold",
-                color: goldText,
-                margin: "0 0 8px",
-                textShadow: "1px 1px 0 #000",
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}
-            >
-              Comments ({comments.length})
+          {/* Comments */}
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <h3 className="text-lg font-semibold text-white/90 mb-4 tracking-wide uppercase">
+              Discussion ({comments.length})
             </h3>
-
-            {/* Comment input */}
-            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+            
+            <div className="flex gap-3 mb-6">
               <input
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
-                placeholder="> Leave a thought..."
-                style={{
-                  flex: 1,
-                  fontFamily: "monospace",
-                  fontSize: 12,
-                  background: darkBg,
-                  border: `2px solid ${dimGold}`,
-                  padding: "8px 10px",
-                  color: lightGold,
-                  outline: "none",
-                  textShadow: "1px 1px 0 rgba(0,0,0,0.5)",
-                }}
+                placeholder="Share your thoughts..."
+                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-sans"
                 disabled={submittingComment}
               />
               <button
                 onClick={handleAddComment}
                 disabled={submittingComment || !newComment.trim()}
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: 11,
-                  fontWeight: "bold",
-                  color: submittingComment || !newComment.trim() ? "#555" : panelBg,
-                  background: submittingComment || !newComment.trim() ? "#2a1f0a" : goldText,
-                  border: `2px solid ${dimGold}`,
-                  padding: "8px 14px",
-                  cursor: submittingComment || !newComment.trim() ? "not-allowed" : "pointer",
-                  boxShadow: submittingComment || !newComment.trim() ? "none" : shadow,
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
-                }}
+                className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 text-white rounded-xl font-medium transition-all shadow-lg active:scale-95 border border-white/10"
               >
                 Post
               </button>
             </div>
 
-            {/* Comment error */}
-            {commentError && (
-              <p style={{ fontFamily: "monospace", fontSize: 11, color: "#e74c3c", margin: "0 0 8px", textShadow: "1px 1px 0 #000" }}>
-                {commentError}
-              </p>
-            )}
+            {commentError && <p className="text-red-400 text-sm mb-4 bg-red-900/20 p-2 rounded-lg">{commentError}</p>}
 
-            {/* Comment list */}
-            <div style={{ maxHeight: 180, overflowY: "auto" }}>
+            <div className="space-y-4">
               {comments.length === 0 && (
-                <p
-                  style={{
-                    fontFamily: "monospace",
-                    fontSize: 11,
-                    color: "#555",
-                    fontStyle: "italic",
-                  }}
-                >
-                  No comments yet. Be the first!
-                </p>
+                <p className="text-gray-500 italic text-center py-4">No comments yet. Start the conversation!</p>
               )}
               {comments.map((c) => (
-                <CommentItem
-                  key={c.id}
-                  comment={c}
-                  artworkId={artwork.artworkId}
-                  onReplyAdded={fetchComments}
-                />
+                <div key={c.id} className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <CommentItem
+                    comment={c}
+                    artworkId={artwork.artworkId}
+                    onReplyAdded={fetchComments}
+                  />
+                </div>
               ))}
             </div>
           </div>

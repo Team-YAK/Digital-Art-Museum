@@ -22,16 +22,22 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=409, detail="Username already exists")
 
-    user = User(username=username, password_hash=hash_password(data.password))
-    db.add(user)
-    db.flush()
+    try:
+        user = User(username=username, password_hash=hash_password(data.password))
+        db.add(user)
+        db.flush()
 
-    room = Room(owner_user_id=user.id, artist_description="")
-    db.add(room)
-    db.commit()
-    db.refresh(user)
+        room = Room(owner_user_id=user.id, artist_description="")
+        db.add(room)
+        db.commit()
+        db.refresh(user)
 
-    return TokenResponse(access_token=create_token(username), username=username)
+        return TokenResponse(access_token=create_token(username), username=username)
+    except Exception as e:
+        db.rollback()
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Internal server error during registration")
 
 
 @router.post("/login", response_model=TokenResponse)

@@ -7,10 +7,14 @@ import type { Room, Artwork } from '@/types/api';
 import type { ArtInteractPayload, EmptySlotPayload, ArtworkUploadedPayload } from '@/types/game';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const ROOM_WIDTH = 3000;
-const SLOT_START_X = 350;
-const SLOT_SPACING = 280;
-const SLOT_COUNT = 10;
+const ROOM_WIDTH = 4000;
+const ROOM_HEIGHT = 1000;
+const SLOT_COUNT = 25;
+const COLS = 13;
+const SLOT_SPACING_X = 280;
+const SLOT_SPACING_Y = 320;
+const START_X = (ROOM_WIDTH - (COLS - 1) * SLOT_SPACING_X) / 2;
+const START_Y = 350;
 const WALL_H = 64;
 
 export class RoomScene extends Phaser.Scene {
@@ -23,6 +27,7 @@ export class RoomScene extends Phaser.Scene {
   private nearestSlotIndex: number = -1;
   private nearBio: boolean = false;
   private modalOpen: boolean = false;
+  private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({ key: 'RoomScene' });
@@ -33,11 +38,18 @@ export class RoomScene extends Phaser.Scene {
     this.isOwner = this.registry.get('isOwner') as boolean;
 
     const screenHeight = this.scale.height;
-    // floorY: where the floor tiles begin (bottom 25% of screen)
+    // floorY for decorations
     const floorY = screenHeight * 0.75;
 
-    // World bounds: full horizontal room, vertical from wall bottom to screen bottom
-    this.physics.world.setBounds(0, WALL_H, ROOM_WIDTH, screenHeight - WALL_H);
+    // World bounds: full 4000x1000 2D room
+    this.physics.world.setBounds(0, WALL_H, ROOM_WIDTH, ROOM_HEIGHT - WALL_H);
+
+    this.obstacleGroup = this.physics.add.staticGroup();
+
+    // Map boundaries (invisible walls)
+    this.obstacleGroup.create(-10, ROOM_HEIGHT/2, 'wall').setDisplaySize(20, ROOM_HEIGHT).refreshBody().setVisible(false);
+    this.obstacleGroup.create(ROOM_WIDTH+10, ROOM_HEIGHT/2, 'wall').setDisplaySize(20, ROOM_HEIGHT).refreshBody().setVisible(false);
+    this.obstacleGroup.create(ROOM_WIDTH/2, ROOM_HEIGHT+10, 'wall').setDisplaySize(ROOM_WIDTH, 20).refreshBody().setVisible(false);
 
     // ---- Background & tiles ----
     this.renderTiles(floorY, screenHeight);
@@ -60,10 +72,19 @@ export class RoomScene extends Phaser.Scene {
     }
 
     for (let i = 0; i < SLOT_COUNT; i++) {
-      const slotX = SLOT_START_X + i * SLOT_SPACING;
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      const slotX = START_X + col * SLOT_SPACING_X;
+      const slotY = START_Y + row * SLOT_SPACING_Y;
+      
       const artwork = artworkByPosition.get(i) || null;
-      const slot = new ArtSlot(this, slotX, floorY - 40, i, artwork, this.isOwner);
+      const slot = new ArtSlot(this, slotX, slotY, i, artwork, this.isOwner);
       this.artSlots.push(slot);
+
+      // Add collision block for the pedestal/easel
+      const blocker = this.obstacleGroup.create(slotX, slotY - 10, 'wall').setDisplaySize(90, 40).refreshBody().setVisible(false);
+      // Optional: depth sort fixes for slots
+      blocker.setDepth(0);
     }
 
     // ---- Decorations between art slots ----
@@ -74,11 +95,12 @@ export class RoomScene extends Phaser.Scene {
       this.add.image(40, floorY - 40, 'door_open').setScale(2).setDepth(3);
     }
 
-    // ---- Player (spawns slightly right of entrance, 2D movement enabled) ----
-    this.player = new RoomPlayer(this, 220, floorY - 30, true);
+    // ---- Player (spawns near the center, 2D movement enabled) ----
+    this.player = new RoomPlayer(this, ROOM_WIDTH / 2, ROOM_HEIGHT - 200, true);
+    this.physics.add.collider(this.player.sprite, this.obstacleGroup);
 
     // ---- Camera: follow in both X and Y ----
-    this.cameras.main.setBounds(0, 0, ROOM_WIDTH, screenHeight);
+    this.cameras.main.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
     this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     // ---- Input ----
@@ -87,9 +109,9 @@ export class RoomScene extends Phaser.Scene {
     }
 
     // ---- EventBus listeners ----
-    EventBus.on('artwork-uploaded', this.onArtworkUploaded, this);
-    EventBus.on('artwork-deleted', this.onArtworkDeleted, this);
-    EventBus.on('bio-updated', this.onBioUpdated, this);
+    EventBus.on('artwork-uploaded', (payload: any) => this.onArtworkUploaded(payload));
+    EventBus.on('artwork-deleted', (payload: any) => this.onArtworkDeleted(payload));
+    EventBus.on('bio-updated', (payload: any) => this.onBioUpdated(payload));
     EventBus.on('modal-opened', () => {
       this.modalOpen = true;
       if (this.input.keyboard) this.input.keyboard.enabled = false;
@@ -105,31 +127,34 @@ export class RoomScene extends Phaser.Scene {
 
   private renderTiles(floorY: number, screenHeight: number): void {
     // ---- Dark background ----
-    this.add.rectangle(ROOM_WIDTH / 2, 0, ROOM_WIDTH, screenHeight, 0x0d0d1a).setOrigin(0.5, 0).setDepth(-1);
+    this.add.rectangle(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, ROOM_WIDTH, ROOM_HEIGHT, 0x0d0d1a).setOrigin(0.5, 0.5).setDepth(-1);
 
-    // ---- Back wall: gallery wall tiles ----
-    const wallKey = this.textures.exists('wall_gallery') ? 'wall_gallery' : 'wall';
-    for (let x = 0; x < ROOM_WIDTH; x += 64) {
-      this.add.image(x, 0, wallKey).setOrigin(0, 0).setDepth(0);
+    // ---- Back wall & Floor ----
+    const floorKey = this.textures.exists('floor_wood') ? 'floor_wood' : 'floor';
+    for (let x = 0; x < ROOM_WIDTH; x += 128) {
+      for (let y = WALL_H; y < ROOM_HEIGHT; y += 128) {
+        this.add.image(x, y, floorKey).setOrigin(0, 0).setDepth(0).setScale(2);
+      }
     }
 
     // ---- Wainscoting: lower wall row just above floor ----
+    const wallKey = this.textures.exists('wall_gallery') ? 'wall_gallery' : 'wall';
     for (let x = 0; x < ROOM_WIDTH; x += 64) {
       this.add.image(x, floorY - WALL_H, wallKey).setOrigin(0, 0).setDepth(0);
     }
 
     // ---- Floor tiles ----
-    const floorKey = this.textures.exists('floor_wood') ? 'floor_wood' : 'floor';
+    const floorKey2 = this.textures.exists('floor_wood') ? 'floor_wood' : 'floor';
     for (let x = 0; x < ROOM_WIDTH; x += 64) {
       for (let y = floorY; y < screenHeight; y += 64) {
-        this.add.image(x, y, floorKey).setOrigin(0, 0).setDepth(0);
+        this.add.image(x, y, floorKey2).setOrigin(0, 0).setDepth(0);
       }
     }
 
     // ---- Sconces between art slots along the back wall ----
     if (this.textures.exists('sconce1')) {
       for (let i = 0; i < SLOT_COUNT - 1; i++) {
-        const sx = SLOT_START_X + i * SLOT_SPACING + SLOT_SPACING / 2;
+        const sx = START_X + (i%COLS) * SLOT_SPACING_X + SLOT_SPACING_X / 2;
         const sconceKey = `sconce${(i % 3) + 1}`;
         this.add.image(sx, 4, sconceKey).setOrigin(0.5, 0).setDepth(2).setScale(1.3);
       }
@@ -137,35 +162,46 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private renderDecorations(floorY: number): void {
-    // ---- Plants at regular intervals ----
+    // ---- Plants scattered ----
     if (this.textures.exists('plant1')) {
       for (let i = 0; i < SLOT_COUNT; i += 3) {
-        const px = SLOT_START_X + i * SLOT_SPACING + SLOT_SPACING / 2;
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        const px = START_X + col * SLOT_SPACING_X + SLOT_SPACING_X / 2;
+        const py = START_Y + row * SLOT_SPACING_Y - 40;
         const plantKey = `plant${(i % 2) + 1}`;
-        this.add.image(px, floorY - 5, plantKey).setOrigin(0.5, 1).setDepth(4).setScale(1.8);
+        this.add.image(px, py, plantKey).setOrigin(0.5, 1).setDepth(py / 1000).setScale(1.8);
       }
     }
 
     // ---- Benches every few slots ----
     if (this.textures.exists('bench_wood')) {
       for (let i = 1; i < SLOT_COUNT; i += 4) {
-        const bx = SLOT_START_X + i * SLOT_SPACING;
-        this.add.image(bx, floorY + 20, 'bench_wood').setOrigin(0.5, 0).setDepth(3).setScale(1.6);
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        const bx = START_X + col * SLOT_SPACING_X;
+        const by = START_Y + row * SLOT_SPACING_Y + 60;
+        this.add.image(bx, by, 'bench_wood').setOrigin(0.5, 0).setDepth(by/1000).setScale(1.6);
       }
     }
 
     // ---- Pedestals at certain spots ----
     if (this.textures.exists('pedestal1')) {
       for (let i = 2; i < SLOT_COUNT; i += 5) {
-        const pedX = SLOT_START_X + i * SLOT_SPACING + SLOT_SPACING / 2;
-        this.add.image(pedX, floorY - 10, 'pedestal1').setOrigin(0.5, 1).setDepth(3).setScale(1.5);
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        const pedX = START_X + col * SLOT_SPACING_X + SLOT_SPACING_X / 2;
+        const pedY = START_Y + row * SLOT_SPACING_Y - 10;
+        this.add.image(pedX, pedY, 'pedestal1').setOrigin(0.5, 1).setDepth(pedY/1000).setScale(1.5);
       }
     }
 
     // ---- Chandeliers hanging from ceiling ----
     if (this.textures.exists('chandelier1')) {
       for (let i = 0; i < SLOT_COUNT; i += 2) {
-        const cx = SLOT_START_X + i * SLOT_SPACING;
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        const cx = START_X + col * SLOT_SPACING_X;
         const chandKey = i % 4 === 0 ? 'chandelier1' : 'chandelier2';
         this.add.image(cx, 2, chandKey).setOrigin(0.5, 0).setDepth(9).setScale(1.5);
       }
@@ -282,9 +318,9 @@ export class RoomScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    EventBus.off('artwork-uploaded', this.onArtworkUploaded, this);
-    EventBus.off('artwork-deleted', this.onArtworkDeleted, this);
-    EventBus.off('bio-updated', this.onBioUpdated, this);
+    EventBus.removeAllListeners('artwork-uploaded');
+    EventBus.removeAllListeners('artwork-deleted');
+    EventBus.removeAllListeners('bio-updated');
     EventBus.removeAllListeners('modal-opened');
     EventBus.removeAllListeners('modal-closed');
   }

@@ -22,19 +22,29 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 px-4">
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-mono font-bold text-white mb-4 tracking-tight">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-mesh px-4 overflow-hidden">
+      {/* Decorative top glow */}
+      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-cyan-500/20 blur-[120px] rounded-full pointer-events-none"></div>
+
+      <div className="relative z-10 text-center mb-12 animate-fade-in-up">
+        <h1 className="text-6xl font-black mb-6 tracking-tighter text-gradient drop-shadow-lg">
           Digital Art Museum
         </h1>
-        <p className="text-lg font-mono text-gray-400">
-          Create your gallery. Share your art. Explore others.
+        <p className="max-w-xl mx-auto text-xl text-gray-300 font-light leading-relaxed">
+          Create your personalized, explorable gallery. Discover incredible artwork, leave comments, and share your creativity with the world.
         </p>
       </div>
-      <UsernameForm />
-      <p className="mt-8 text-sm font-mono text-gray-600">
-        Enter a username to create your personal gallery room
-      </p>
+
+      <div className="relative z-10 glass-panel rounded-3xl p-10 w-full max-w-md animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <UsernameForm />
+        <p className="mt-8 text-center text-sm text-gray-400">
+          Enter a username or login to explore
+        </p>
+      </div>
+
+      <div className="absolute bottom-6 text-gray-500 text-sm tracking-widest font-mono">
+        EXPLORE • CREATE • SHARE
+      </div>
     </div>
   );
 }

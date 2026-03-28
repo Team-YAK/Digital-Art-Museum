@@ -69,6 +69,9 @@ def add_comment(
     db.commit()
     db.refresh(comment)
 
+    # Reload to fully populate relationships like author before creating response
+    comment = db.query(Comment).filter(Comment.id == comment.id).first()
+
     return _comment_response(comment)
 
 

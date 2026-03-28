@@ -36,65 +36,21 @@ export default function BioModal({
   return (
     <div
       onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(0,0,0,0.82)",
-        fontFamily: "monospace",
-        imageRendering: "pixelated",
-      }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-hidden"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: panelBg,
-          border: "4px solid #d4af37",
-          boxShadow: `${shadow}, inset 0 0 0 2px #2a1f0a`,
-          maxWidth: 420,
-          width: "90%",
-          overflow: "hidden",
-        }}
+        className="glass-panel relative w-full max-w-sm rounded-2xl flex flex-col shadow-[0_0_50px_rgba(6,182,212,0.15)] border border-white/10 overflow-hidden animate-fade-in-up"
       >
         {/* Header bar */}
-        <div
-          style={{
-            background: darkBg,
-            borderBottom: `3px solid ${goldText}`,
-            padding: "10px 16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {/* decorative pixel icon */}
-            <span style={{ fontSize: 18, lineHeight: 1 }}>🖼</span>
+        <div className="bg-black/40 border-b border-white/10 p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🖼</span>
             <div>
-              <div
-                style={{
-                  fontSize: 9,
-                  color: dimGold,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  marginBottom: 2,
-                }}
-              >
-                ~ Artist Profile ~
+              <div className="text-[10px] text-cyan-400 tracking-widest uppercase mb-1">
+                Artist Profile
               </div>
-              <div
-                style={{
-                  fontSize: 16,
-                  color: goldText,
-                  fontWeight: "bold",
-                  textShadow: "2px 2px 0 #000",
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                }}
-              >
+              <div className="text-xl font-bold text-white tracking-widest uppercase">
                 {username}
               </div>
             </div>
@@ -103,61 +59,24 @@ export default function BioModal({
           {/* Close button */}
           <button
             onClick={onClose}
-            style={{
-              background: panelBg,
-              border: `2px solid ${goldText}`,
-              color: goldText,
-              fontFamily: "monospace",
-              fontSize: 13,
-              fontWeight: "bold",
-              padding: "2px 10px",
-              cursor: "pointer",
-              boxShadow: "2px 2px 0 #000",
-              textShadow: "1px 1px 0 #000",
-            }}
+            className="glass-button w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white"
           >
-            X
+            ✕
           </button>
         </div>
 
         {/* Bio body */}
-        <div style={{ padding: "14px 18px 18px" }}>
-          <div
-            style={{
-              fontSize: 10,
-              color: dimGold,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              marginBottom: 8,
-              borderBottom: `1px solid ${dimGold}44`,
-              paddingBottom: 6,
-            }}
-          >
+        <div className="p-6">
+          <div className="text-xs text-cyan-400 tracking-widest uppercase mb-4 border-b border-white/10 pb-2">
             About the Artist
           </div>
 
           {description ? (
-            <p
-              style={{
-                fontSize: 13,
-                color: "#c9b98a",
-                lineHeight: 1.7,
-                margin: "0 0 14px",
-                whiteSpace: "pre-wrap",
-                textShadow: "1px 1px 0 rgba(0,0,0,0.6)",
-              }}
-            >
+            <p className="text-sm text-gray-300 leading-relaxed mb-6 font-light whitespace-pre-wrap">
               {description}
             </p>
           ) : (
-            <p
-              style={{
-                fontSize: 12,
-                color: "#555",
-                fontStyle: "italic",
-                margin: "0 0 14px",
-              }}
-            >
+            <p className="text-sm text-gray-500 italic mb-6">
               {isOwner
                 ? "You haven't written a bio yet. Press Edit to add one!"
                 : "This artist hasn't added a bio yet."}
@@ -171,24 +90,9 @@ export default function BioModal({
                 onClose();
                 onEditBio();
               }}
-              onMouseEnter={() => setHoverEdit(true)}
-              onMouseLeave={() => setHoverEdit(false)}
-              style={{
-                fontFamily: "monospace",
-                fontSize: 11,
-                fontWeight: "bold",
-                color: hoverEdit ? darkBg : goldText,
-                background: hoverEdit ? goldText : "transparent",
-                border: `2px solid ${goldText}`,
-                padding: "6px 18px",
-                cursor: "pointer",
-                boxShadow: hoverEdit ? "none" : "2px 2px 0 #000",
-                textTransform: "uppercase",
-                letterSpacing: 1,
-                transition: "background 0.1s, color 0.1s",
-              }}
+              className="mt-2 w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 border border-white/10"
             >
-              [ Edit Bio ]
+              Edit Bio
             </button>
           )}
         </div>

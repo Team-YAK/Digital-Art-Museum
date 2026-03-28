@@ -48,18 +48,25 @@ def upload_artwork(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.username != username.lower():
-        raise HTTPException(status_code=403, detail="You can only upload to your own room")
+    try:
+        if current_user.username != username.lower():
+            raise HTTPException(status_code=403, detail="You can only upload to your own room")
 
-    artwork = create_artwork(
-        username=username,
-        title=title,
-        description=description,
-        position_index=position_index,
-        file=image,
-        db=db,
-    )
-    return _artwork_response(artwork)
+        artwork = create_artwork(
+            username=username,
+            title=title,
+            description=description,
+            position_index=position_index,
+            file=image,
+            db=db,
+        )
+        return _artwork_response(artwork)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{username}/artworks/{position_index}", status_code=204)

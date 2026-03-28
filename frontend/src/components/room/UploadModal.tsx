@@ -80,102 +80,46 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
   return (
     <div
       onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(0,0,0,0.8)",
-        fontFamily: "monospace",
-        imageRendering: "pixelated",
-      }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-hidden"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: panelBg,
-          border: `4px solid ${goldText}`,
-          boxShadow: "8px 8px 0px #000, inset 0 0 0 2px #2a1f0a",
-          padding: 0,
-          maxWidth: 460,
-          width: "92%",
-          overflow: "hidden",
-        }}
+        className="glass-panel relative w-full max-w-md rounded-2xl flex flex-col shadow-[0_0_50px_rgba(6,182,212,0.15)] border border-white/10 overflow-hidden animate-fade-in-up"
       >
         {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "10px 14px",
-            background: "linear-gradient(180deg, #2a1f0a 0%, #1a1208 100%)",
-            borderBottom: `3px solid ${goldText}`,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🖼️</span>
-          <span
-            style={{
-              fontFamily: "monospace",
-              fontSize: 13,
-              fontWeight: "bold",
-              color: goldText,
-              textShadow: "1px 1px 0 #000",
-              letterSpacing: 1,
-              textTransform: "uppercase",
-            }}
-          >
-            Upload Artwork — Slot {positionIndex + 1}
+        <div className="flex items-center justify-between p-5 bg-black/40 border-b border-white/10">
+          <span className="text-2xl">🖼️</span>
+          <span className="font-bold text-white tracking-widest uppercase">
+            Upload to Slot {positionIndex + 1}
           </span>
           <button
             onClick={onClose}
-            style={{
-              fontFamily: "monospace",
-              fontSize: 13,
-              fontWeight: "bold",
-              color: goldText,
-              background: "#2a1f0a",
-              border: `2px solid ${goldText}`,
-              cursor: "pointer",
-              padding: "2px 8px",
-              textShadow: "1px 1px 0 #000",
-            }}
+            className="glass-button w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white"
           >
-            X
+            ✕
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} style={{ padding: "16px 18px", background: panelBg }}>
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-white/20">
           {/* File drop zone */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            style={{
-              border: `2px dashed ${dimGold}`,
-              background: darkBg,
-              padding: "20px",
-              textAlign: "center",
-              cursor: "pointer",
-              marginBottom: 14,
-              minHeight: 110,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "inset 2px 2px 0 #000",
-            }}
+            className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 cursor-pointer transition-all ${
+              preview ? "border-cyan-500/50 bg-black/40" : "border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40"
+            }`}
+            style={{ minHeight: 160 }}
           >
             {preview ? (
               <img
                 src={preview}
                 alt="Preview"
-                style={{ maxWidth: "100%", maxHeight: 180, display: "block", imageRendering: "pixelated" }}
+                className="max-h-40 object-contain rounded-lg shadow-lg"
               />
             ) : (
-              <div>
-                <div style={{ fontSize: 32, marginBottom: 6 }}>+</div>
-                <p style={{ fontFamily: "monospace", color: dimGold, fontSize: 12, margin: 0, textTransform: "uppercase", letterSpacing: 1 }}>
+              <div className="text-center">
+                <div className="text-4xl text-white/50 mb-2">+</div>
+                <p className="text-sm text-gray-400 uppercase tracking-widest">
                   Click to select image
                 </p>
               </div>
@@ -185,83 +129,62 @@ export default function UploadModal({ positionIndex, username, onClose, onUpload
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              style={{ display: "none" }}
+              className="hidden"
             />
           </div>
 
-          {/* Title */}
-          <label style={{ display: "block", fontSize: 10, color: goldText, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-            Title *
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => e.stopPropagation()}
-            placeholder="> Artwork title..."
-            required
-            style={{ ...inputStyle, marginBottom: 12 }}
-          />
+          {/* Title input */}
+          <div>
+            <label className="block text-xs text-cyan-400 uppercase tracking-widest mb-2 font-semibold">
+              Title *
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder="Artwork title..."
+              required
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-sans"
+            />
+          </div>
 
-          {/* Description */}
-          <label style={{ display: "block", fontSize: 10, color: goldText, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onKeyDown={(e) => e.stopPropagation()}
-            placeholder="> Optional description..."
-            rows={3}
-            style={{ ...inputStyle, resize: "vertical", marginBottom: 14 }}
-          />
+          {/* Description input */}
+          <div>
+            <label className="block text-xs text-cyan-400 uppercase tracking-widest mb-2 font-semibold">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder="Optional description..."
+              rows={3}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-sans resize-y"
+            />
+          </div>
 
-          {/* Error */}
+          {/* Error Message */}
           {error && (
-            <p style={{ color: "#c0392b", fontFamily: "monospace", fontSize: 12, marginBottom: 12, textShadow: "1px 1px 0 #000" }}>
-              [Error] {error}
-            </p>
+            <div className="bg-red-900/20 border border-red-500/30 text-red-400 p-3 rounded-xl text-sm">
+              {error}
+            </div>
           )}
 
           {/* Buttons */}
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <div className="flex gap-3 mt-4 pt-4 border-t border-white/10 justify-end">
             <button
               type="button"
               onClick={onClose}
               disabled={isUploading}
-              style={{
-                fontFamily: "monospace",
-                fontSize: 12,
-                fontWeight: "bold",
-                color: dimGold,
-                background: darkBg,
-                border: `2px solid ${dimGold}`,
-                cursor: "pointer",
-                padding: "8px 18px",
-                textTransform: "uppercase",
-                letterSpacing: 1,
-                boxShadow: "2px 2px 0 #000",
-              }}
+              className="px-5 py-2.5 rounded-xl border border-white/20 text-white hover:bg-white/10 transition-colors font-medium text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!file || !title.trim() || isUploading}
-              style={{
-                fontFamily: "monospace",
-                fontSize: 12,
-                fontWeight: "bold",
-                color: !file || !title.trim() || isUploading ? "#555" : panelBg,
-                background: !file || !title.trim() || isUploading ? "#2a1f0a" : goldText,
-                border: `2px solid ${dimGold}`,
-                cursor: !file || !title.trim() || isUploading ? "not-allowed" : "pointer",
-                padding: "8px 24px",
-                textTransform: "uppercase",
-                letterSpacing: 1,
-                boxShadow: !file || !title.trim() || isUploading ? "none" : shadow,
-                opacity: !file || !title.trim() ? 0.5 : 1,
-              }}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 text-white font-bold transition-all shadow-lg border border-white/10 disabled:opacity-50 text-sm"
             >
               {isUploading ? "Uploading..." : "Upload"}
             </button>

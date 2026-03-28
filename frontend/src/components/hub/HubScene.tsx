@@ -51,11 +51,11 @@ export default function HubScene({ username, onOpenChat }: HubSceneProps) {
       gameRef.current = game;
     });
 
-    EventBus.on("hub-interact", handleInteract);
+    EventBus.on("hub-interact", (payload: any) => handleInteract(payload));
 
     return () => {
       destroyed = true;
-      EventBus.off("hub-interact", handleInteract);
+      EventBus.removeAllListeners("hub-interact");
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
