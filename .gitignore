@@ -1,0 +1,33 @@
+# Dependencies
+frontend/node_modules/
+backend/venv/
+
+# Build
+frontend/.next/
+
+# Database
+backend/data/*.db
+
+# Uploads (user content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+!backend/uploads/pixel/.gitkeep
+
+# Environment
+backend/.env
+frontend/.env.local
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Next.js
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+__pycache__/
+*.pyc
