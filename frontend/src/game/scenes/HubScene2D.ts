@@ -98,10 +98,8 @@ export class HubScene2D extends Phaser.Scene {
     }
 
     // ── Chandeliers ─────────────────────────────────────────────────────────
-    const chandKeys = ['chandelier1', 'chandelier2', 'chandelier3'];
     for (let x = 400; x < HUB_WIDTH; x += 600) {
-      const key = chandKeys[Math.floor(x / 600) % chandKeys.length];
-      this.add.image(x, WALL_H + 2, key).setOrigin(0.5, 0).setDepth(9).setScale(1.8);
+      this.add.image(x, WALL_H + 2, 'chandelier1').setOrigin(0.5, 0).setDepth(9).setScale(1.8);
     }
 
     // ── Museum title (entrance zone) ────────────────────────────────────────

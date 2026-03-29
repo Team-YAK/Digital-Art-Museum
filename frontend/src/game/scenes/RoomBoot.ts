@@ -12,8 +12,7 @@ export class RoomBoot extends Phaser.Scene {
     this.load.image('wall_charcoal','/wall_charcoal.png');
 
     // ---- Props ----
-    this.load.image('chandelier1', '/assets/props/chandelier_01.png');
-    this.load.image('chandelier2', '/assets/props/chandelier_02.png');
+    this.load.image('chandelier1', '/assets/props/Chandelier1.png');
     this.load.image('sconce1',     '/assets/props/sconce_01.png');
     this.load.image('sconce2',     '/assets/props/sconce_02.png');
     this.load.image('sconce3',     '/assets/props/sconce_03.png');

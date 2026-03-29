@@ -4,6 +4,7 @@ export interface ArtInteractPayload {
   description: string;
   imageUrl: string;
   pixelImageUrl: string;
+  positionIndex: number;
 }
 
 export interface EmptySlotPayload {

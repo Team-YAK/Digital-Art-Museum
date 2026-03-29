@@ -199,8 +199,7 @@ export class RoomScene extends Phaser.Scene {
         const col = i % COLS;
         const row = Math.floor(i / COLS);
         const cx = START_X + col * SLOT_SPACING_X;
-        const chandKey = i % 4 === 0 ? 'chandelier1' : 'chandelier2';
-        this.add.image(cx, 2, chandKey).setOrigin(0.5, 0).setDepth(9).setScale(1.5);
+        this.add.image(cx, 2, 'chandelier1').setOrigin(0.5, 0).setDepth(9).setScale(1.5);
       }
     }
   }
@@ -287,6 +286,7 @@ export class RoomScene extends Phaser.Scene {
             description: artwork.description,
             imageUrl: `${API_URL}${artwork.image_url}`,
             pixelImageUrl: `${API_URL}${artwork.pixel_image_url}`,
+            positionIndex: slot.getPositionIndex(),
           };
           EventBus.emit('interact-art', payload);
         } else if (this.isOwner) {

@@ -41,11 +41,9 @@ export default function RoomGame({ username, isOwner }: RoomGameProps) {
 
   // EventBus handlers
   const handleArtInteract = useCallback((payload: ArtInteractPayload) => {
-    // Find position_index from room data
-    const artwork = room?.artworks.find((a) => a.id === payload.artworkId);
-    setArtModal({ ...payload, positionIndex: artwork?.position_index });
+    setArtModal(payload);
     EventBus.emit("modal-opened");
-  }, [room]);
+  }, []);
 
   const handleEmptySlot = useCallback((payload: EmptySlotPayload) => {
     setUploadSlot(payload.positionIndex);
