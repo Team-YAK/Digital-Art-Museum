@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+pillow
+python-multipart
+openai
+python-dotenv
+bcrypt
+python-jose[cryptography]
+psycopg2-binary
+boto3
