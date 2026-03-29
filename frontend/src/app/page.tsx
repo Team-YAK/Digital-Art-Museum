@@ -22,27 +22,29 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-mesh px-4 overflow-hidden">
-      {/* Decorative top glow */}
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-cyan-500/20 blur-[120px] rounded-full pointer-events-none"></div>
-
-      <div className="relative z-10 text-center mb-12 animate-fade-in-up">
-        <h1 className="text-6xl font-black mb-6 tracking-tighter text-gradient drop-shadow-lg">
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", backgroundColor: "#0f0c04", padding: 16 }}>
+      
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <h1 style={{ fontFamily: "monospace", fontSize: 48, fontWeight: "bold", color: "#d4af37", textTransform: "uppercase", textShadow: "4px 4px 0 #000", margin: "0 0 16px 0", letterSpacing: 2 }}>
           Digital Art Museum
         </h1>
-        <p className="max-w-xl mx-auto text-xl text-gray-300 font-light leading-relaxed">
-          Create your personalized, explorable gallery. Discover incredible artwork, leave comments, and share your creativity with the world.
+        <p style={{ fontFamily: "monospace", color: "#ffe99a", fontSize: 16, maxWidth: 500, margin: "0 auto", lineHeight: 1.6 }}>
+          Create your personalized, explorable gallery. Discover incredible pixel artwork and share your creativity with the world.
         </p>
       </div>
 
-      <div className="relative z-10 glass-panel rounded-3xl p-10 w-full max-w-md animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+      <div style={{ 
+        background: "#1a1208", 
+        border: "3px solid #d4af37", 
+        boxShadow: "6px 6px 0 #000", 
+        padding: "40px", 
+        width: "100%", 
+        maxWidth: 420 
+      }}>
         <UsernameForm />
-        <p className="mt-8 text-center text-sm text-gray-400">
-          Enter a username or login to explore
-        </p>
       </div>
 
-      <div className="absolute bottom-6 text-gray-500 text-sm tracking-widest font-mono">
+      <div style={{ position: "absolute", bottom: 24, fontFamily: "monospace", color: "#8b6914", fontSize: 13, letterSpacing: 4, fontWeight: "bold" }}>
         EXPLORE • CREATE • SHARE
       </div>
     </div>

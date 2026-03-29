@@ -62,15 +62,21 @@ export function UsernameForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-sm mx-auto">
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%", maxWidth: 360, margin: "0 auto", fontFamily: "monospace" }}>
       <input
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Username"
-        className="px-5 py-4 bg-black/30 border border-white/10 rounded-xl text-white
-                   placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50
-                   font-sans text-lg backdrop-blur-md transition-all shadow-inner"
+        style={{
+          padding: "16px 20px",
+          background: "#0f0c04",
+          border: "2px solid #8b6914",
+          color: "#ffe99a",
+          outline: "none",
+          fontSize: 16,
+          boxShadow: "inset 2px 2px 0 #000"
+        }}
         maxLength={20}
         autoFocus
         disabled={isSubmitting}
@@ -80,20 +86,40 @@ export function UsernameForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
-        className="px-5 py-4 bg-black/30 border border-white/10 rounded-xl text-white
-                   placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50
-                   font-sans text-lg backdrop-blur-md transition-all shadow-inner"
+        style={{
+          padding: "16px 20px",
+          background: "#0f0c04",
+          border: "2px solid #8b6914",
+          color: "#ffe99a",
+          outline: "none",
+          fontSize: 16,
+          boxShadow: "inset 2px 2px 0 #000"
+        }}
         disabled={isSubmitting}
       />
-      {error && <p className="text-red-400 text-sm bg-red-900/20 p-3 rounded-lg border border-red-500/20">{error}</p>}
+      {error && (
+        <div style={{ padding: "10px 14px", background: "#3a0000", border: "2px solid #ff4444", color: "#ff8888", fontSize: 13, textTransform: "uppercase" }}>
+          {error}
+        </div>
+      )}
       
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-2 w-full py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500
-                   disabled:from-gray-700 disabled:to-gray-800 rounded-xl text-white font-bold text-lg 
-                   transition-all transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(6,182,212,0.3)]
-                   active:scale-95 shadow-lg border border-white/10"
+        style={{
+          marginTop: 8,
+          padding: "16px",
+          background: isSubmitting ? "#8b6914" : "#d4af37",
+          border: "2px solid #8b6914",
+          color: "#1a1208",
+          fontSize: 16,
+          fontWeight: "bold",
+          textTransform: "uppercase",
+          letterSpacing: 2,
+          cursor: isSubmitting ? "not-allowed" : "pointer",
+          boxShadow: "3px 3px 0 #000",
+          transition: "transform 0.1s"
+        }}
       >
         {isSubmitting
           ? "Entering..."
@@ -102,16 +128,25 @@ export function UsernameForm() {
           : "Create Account"}
       </button>
 
-      <div className="relative flex items-center py-4">
-        <div className="flex-grow border-t border-white/10"></div>
-        <span className="flex-shrink-0 mx-4 text-gray-500 text-xs uppercase tracking-widest">or</span>
-        <div className="flex-grow border-t border-white/10"></div>
+      <div style={{ display: "flex", alignItems: "center", margin: "16px 0" }}>
+        <div style={{ flex: 1, borderTop: "2px solid #8b6914" }}></div>
+        <span style={{ padding: "0 16px", color: "#8b6914", fontSize: 12, textTransform: "uppercase", fontWeight: "bold" }}>or</span>
+        <div style={{ flex: 1, borderTop: "2px solid #8b6914" }}></div>
       </div>
 
       <button
         type="button"
         onClick={() => setMode(mode === "login" ? "register" : "login")}
-        className="text-gray-400 hover:text-white text-sm transition-colors py-2 rounded-lg hover:bg-white/5"
+        style={{
+          background: "none",
+          border: "none",
+          color: "#d4af37",
+          fontSize: 14,
+          cursor: "pointer",
+          textDecoration: "underline",
+          textUnderlineOffset: 4,
+          fontFamily: "monospace"
+        }}
       >
         {mode === "login"
           ? "New here? Create an account"
