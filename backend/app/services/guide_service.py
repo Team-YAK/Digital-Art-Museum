@@ -12,9 +12,9 @@ without touching this file's structure -- just swap out or extend _keyword_searc
 import os
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-
+import base64
 from app.models import User, Room, Artwork
-from app.config import OPENAI_API_KEY
+from app.config import OPENAI_API_KEY, UPLOAD_DIR
 
 # Load system prompt once at import time
 _PROMPT_PATH = os.path.join(os.path.dirname(__file__), "..", "prompts", "guide_system.txt")
@@ -120,7 +120,22 @@ def _build_context(query: str, search_results: list[dict]) -> str:
 # Layer 2: OpenAI chat
 # ---------------------------------------------------------------------------
 
-def guide_chat(query: str, db: Session) -> dict:
+def _encode_image_file(image_url: str) -> str | None:
+    try:
+        import urllib.parse
+        parsed = urllib.parse.urlparse(image_url)
+        path = parsed.path 
+        if "/media/uploads/" in path:
+            rel_path = path.split("/media/uploads/")[-1] 
+            abs_path = os.path.join(UPLOAD_DIR, rel_path)
+            if os.path.exists(abs_path):
+                with open(abs_path, "rb") as image_file:
+                    return base64.b64encode(image_file.read()).decode('utf-8')
+    except Exception as e:
+        print(f"Error encoding image: {e}")
+    return None
+
+def guide_chat(query: str, db: Session, context: str | None = None, image_url: str | None = None) -> dict:
     """
     Returns {"response": str, "suggestions": [{"username": str, "reason": str}]}
 
@@ -142,19 +157,36 @@ def guide_chat(query: str, db: Session) -> dict:
         return {"response": response, "suggestions": suggestions}
 
     # Build context from search results
-    context = _build_context(query, search_results)
+    full_context = _build_context(query, search_results)
+    if context:
+        full_context += f"\n\n[IMPORTANT: THE VISITOR IS CURRENTLY VIEWING THIS SPECIFIC ARTWORK]:\n{context}\nAnswer their query mainly about this artwork if relevant!"
 
     try:
         from openai import OpenAI
         client = OpenAI(api_key=OPENAI_API_KEY)
 
+        user_content = [{"type": "text", "text": full_context}]
+        
+        if image_url:
+            base64_img = _encode_image_file(image_url)
+            if base64_img:
+                user_content.append({
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{base64_img}", "detail": "high"}
+                })
+            elif image_url.startswith("http") and "localhost" not in image_url and "127.0.0.1" not in image_url:
+                user_content.append({
+                    "type": "image_url",
+                    "image_url": {"url": image_url, "detail": "high"}
+                })
+
         completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            max_tokens=150,
+            model="gpt-4o",
+            max_tokens=300,
             temperature=0.7,
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT},
-                {"role": "user", "content": context},
+                {"role": "user", "content": user_content},
             ],
         )
         response_text = completion.choices[0].message.content or _FALLBACKS[0]

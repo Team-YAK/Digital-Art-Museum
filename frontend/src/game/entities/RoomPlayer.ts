@@ -3,9 +3,10 @@ import Phaser from 'phaser';
 export class RoomPlayer {
   public sprite: Phaser.Physics.Arcade.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private wasd!: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key };
+  private wasd!: { W: Phaser.Input.Keyboard.Key; A: Phaser.Input.Keyboard.Key; S: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key; Shift: Phaser.Input.Keyboard.Key };
   private lastDirection: string = 'down';
-  private speed = 450;
+  private walkSpeed = 200;
+  private sprintSpeed = 450;
   private allowVertical: boolean;
 
   constructor(scene: Phaser.Scene, x: number, y: number, allowVertical = false) {
@@ -40,6 +41,7 @@ export class RoomPlayer {
         A: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
         S: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
         D: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+        Shift: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
       };
     }
   }
@@ -59,10 +61,12 @@ export class RoomPlayer {
 
     let vx = 0;
     let vy = 0;
-    if (left) vx = -this.speed;
-    else if (right) vx = this.speed;
-    if (up) vy = -this.speed;
-    else if (down) vy = this.speed;
+    const currentSpeed = this.wasd?.Shift?.isDown ? this.sprintSpeed : this.walkSpeed;
+
+    if (left) vx = -currentSpeed;
+    else if (right) vx = currentSpeed;
+    if (up) vy = -currentSpeed;
+    else if (down) vy = currentSpeed;
 
     this.sprite.setVelocity(vx, vy);
 

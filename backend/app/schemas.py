@@ -57,6 +57,8 @@ class RandomRoomResponse(BaseModel):
 
 class ChatRequest(BaseModel):
     query: str
+    context: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class ChatSuggestion(BaseModel):

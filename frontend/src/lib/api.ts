@@ -143,10 +143,10 @@ export async function deleteArtwork(
 }
 
 // Chat
-export async function chatWithGuide(query: string): Promise<ChatResponse> {
+export async function chatWithGuide(query: string, context?: string, imageUrl?: string): Promise<ChatResponse> {
   return request<ChatResponse>("/api/chat/guide", {
     method: "POST",
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, context, image_url: imageUrl }),
   });
 }
 

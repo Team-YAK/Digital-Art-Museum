@@ -176,6 +176,14 @@ export default function ArtModal({
   const [commentError, setCommentError] = useState<string | null>(null);
   const [likeError, setLikeError] = useState<string | null>(null);
 
+  // ---- AI Guide Chat State ----
+  const [activeTab, setActiveTab] = useState<"comments" | "guide">("comments");
+  const [guideMessages, setGuideMessages] = useState<{ role: "user" | "guide"; text: string }[]>([
+    { role: "guide", text: `I am the Museum Guide! What would you like to know about "${artwork.title}"?` }
+  ]);
+  const [guideInput, setGuideInput] = useState("");
+  const [isGuideThinking, setIsGuideThinking] = useState(false);
+
   const fetchComments = useCallback(() => {
     getComments(artwork.artworkId).then(setComments).catch(() => {});
   }, [artwork.artworkId]);
@@ -251,6 +259,26 @@ export default function ArtModal({
     }
   };
 
+  const handleGuideSubmit = async () => {
+    if (!guideInput.trim() || isGuideThinking) return;
+
+    const userMsg = guideInput.trim();
+    setGuideMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setGuideInput("");
+    setIsGuideThinking(true);
+
+    try {
+      const { chatWithGuide } = await import("@/lib/api");
+      const ctx = `Title: ${artwork.title}\nDescription: ${artwork.description || "No description provided."}`;
+      const res = await chatWithGuide(userMsg, ctx, artwork.imageUrl);
+      setGuideMessages((prev) => [...prev, { role: "guide", text: res.response }]);
+    } catch (err) {
+      setGuideMessages((prev) => [...prev, { role: "guide", text: "Sorry, I am having trouble connecting to the museum archives right now." }]);
+    } finally {
+      setIsGuideThinking(false);
+    }
+  };
+
   return (
     <div
       onClick={onClose}
@@ -315,47 +343,120 @@ export default function ArtModal({
             </button>
           )}
 
-          {/* Comments */}
+          {/* Discussion / AI Guide Section */}
           <div className="mt-6 pt-6 border-t border-white/10">
-            <h3 className="text-lg font-semibold text-white/90 mb-4 tracking-wide uppercase">
-              Discussion ({comments.length})
-            </h3>
-            
-            <div className="flex gap-3 mb-6">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
-                placeholder="Share your thoughts..."
-                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-sans"
-                disabled={submittingComment}
-              />
+            {/* Tabs */}
+            <div className="flex gap-6 mb-6 border-b border-white/10">
               <button
-                onClick={handleAddComment}
-                disabled={submittingComment || !newComment.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 text-white rounded-xl font-medium transition-all shadow-lg active:scale-95 border border-white/10"
+                onClick={() => setActiveTab("comments")}
+                className={`pb-2 text-lg font-semibold tracking-wide uppercase transition-colors ${
+                  activeTab === "comments"
+                    ? "text-cyan-400 border-b-2 border-cyan-400"
+                    : "text-white/50 hover:text-white/80"
+                }`}
               >
-                Post
+                Discussion ({comments.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("guide")}
+                className={`pb-2 text-lg font-semibold tracking-wide uppercase transition-colors flex items-center gap-2 ${
+                  activeTab === "guide"
+                    ? "text-purple-400 border-b-2 border-purple-400"
+                    : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                <span>AI Guide</span>
+                <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">Beta</span>
               </button>
             </div>
-
-            {commentError && <p className="text-red-400 text-sm mb-4 bg-red-900/20 p-2 rounded-lg">{commentError}</p>}
-
-            <div className="space-y-4">
-              {comments.length === 0 && (
-                <p className="text-gray-500 italic text-center py-4">No comments yet. Start the conversation!</p>
-              )}
-              {comments.map((c) => (
-                <div key={c.id} className="bg-white/5 rounded-xl p-4 border border-white/5">
-                  <CommentItem
-                    comment={c}
-                    artworkId={artwork.artworkId}
-                    onReplyAdded={fetchComments}
+            
+            {activeTab === "comments" ? (
+              <>
+                <div className="flex gap-3 mb-6">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+                    placeholder="Share your thoughts..."
+                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-sans"
+                    disabled={submittingComment}
                   />
+                  <button
+                    onClick={handleAddComment}
+                    disabled={submittingComment || !newComment.trim()}
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 text-white rounded-xl font-medium transition-all shadow-lg active:scale-95 border border-white/10"
+                  >
+                    Post
+                  </button>
                 </div>
-              ))}
-            </div>
+
+                {commentError && <p className="text-red-400 text-sm mb-4 bg-red-900/20 p-2 rounded-lg">{commentError}</p>}
+
+                <div className="space-y-4">
+                  {comments.length === 0 && (
+                    <p className="text-gray-500 italic text-center py-4">No comments yet. Start the conversation!</p>
+                  )}
+                  {comments.map((c) => (
+                    <div key={c.id} className="bg-white/5 rounded-xl p-4 border border-white/5">
+                      <CommentItem
+                        comment={c}
+                        artworkId={artwork.artworkId}
+                        onReplyAdded={fetchComments}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col h-[320px] bg-black/30 rounded-xl border border-white/5 p-4 box-border">
+                {/* Guide messages list */}
+                <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2 scrollbar-thin scrollbar-thumb-white/20">
+                  {guideMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`p-3 rounded-xl max-w-[85%] ${
+                          msg.role === "user"
+                            ? "bg-purple-900/40 border border-purple-500/30 text-white rounded-br-none"
+                            : "bg-white/5 border border-white/10 text-gray-300 rounded-bl-none"
+                        }`}
+                      >
+                        <p className="text-sm font-sans leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {isGuideThinking && (
+                    <div className="flex justify-start">
+                      <div className="bg-white/5 border border-white/10 text-gray-400 p-3 rounded-xl rounded-bl-none max-w-[80%] animate-pulse">
+                        <p className="text-sm">Thinking...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Guide input line */}
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={guideInput}
+                    onChange={(e) => setGuideInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleGuideSubmit()}
+                    placeholder="Ask about this artwork..."
+                    className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 font-sans"
+                    disabled={isGuideThinking}
+                  />
+                  <button
+                    onClick={handleGuideSubmit}
+                    disabled={isGuideThinking || !guideInput.trim()}
+                    className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl font-medium transition-all shadow-lg active:scale-95 border border-white/10"
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
