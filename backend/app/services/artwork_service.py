@@ -12,10 +12,28 @@ import tempfile
 
 from sqlalchemy.orm import Session
 from fastapi import UploadFile, HTTPException
+import boto3
 
-from app.config import UPLOAD_DIR
+from app.config import (
+    UPLOAD_DIR, SUPABASE_URL, SUPABASE_BUCKET, 
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, BASE_DIR
+)
 from app.models import User, Artwork
 from app.services.pixelizer import pixelize
+
+def upload_to_cloud(local_path: str, file_name: str) -> str | None:
+    if not SUPABASE_URL:
+        return None
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=SUPABASE_URL,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION
+    )
+    s3.upload_file(local_path, SUPABASE_BUCKET, file_name, ExtraArgs={"ContentType": "image/png"})
+    base_url = SUPABASE_URL.replace("/s3", "")
+    return f"{base_url}/object/public/{SUPABASE_BUCKET}/{file_name}"
 
 
 def validate_upload(position_index: int, room_id: int, db: Session) -> None:
@@ -77,7 +95,7 @@ def create_artwork(
         # Pixelize
         paths = pixelize(tmp_path)
 
-        # Save original to uploads/ as well
+        # Save original locally
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         file_id = uuid.uuid4().hex[:12]
         ext = os.path.splitext(file.filename or "image.png")[1] or ".png"
@@ -85,13 +103,27 @@ def create_artwork(
         original_abs = os.path.join(UPLOAD_DIR, original_filename)
         shutil.copy2(tmp_path, original_abs)
 
+        # Upload to cloud (if configured)
+        display_img_path = paths["display_path"]
+        pixel_img_path = paths["pixel_path"]
+
+        display_abs = os.path.join(BASE_DIR, display_img_path.lstrip("/"))
+        pixel_abs = os.path.join(BASE_DIR, pixel_img_path.lstrip("/"))
+
+        cloud_display_url = upload_to_cloud(display_abs, f"uploads/{os.path.basename(display_abs)}")
+        cloud_pixel_url = upload_to_cloud(pixel_abs, f"uploads/pixel/{os.path.basename(pixel_abs)}")
+        
+        # Override paths if cloud was successful
+        final_image_url = cloud_display_url if cloud_display_url else display_img_path
+        final_pixel_url = cloud_pixel_url if cloud_pixel_url else pixel_img_path
+
         # Create DB record
         artwork = Artwork(
             room_id=room.id,
             title=title,
             description=description,
-            image_url=paths["display_path"],
-            pixel_image_url=paths["pixel_path"],
+            image_url=final_image_url,
+            pixel_image_url=final_pixel_url,
             position_index=position_index,
         )
         db.add(artwork)
