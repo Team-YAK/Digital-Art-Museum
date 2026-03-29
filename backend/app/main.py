@@ -9,6 +9,10 @@ from app.routers import users, rooms, artworks, chat, interactions
 
 app = FastAPI(title="Digital Art Museum API")
 
+# Force table initialization natively on bootup. 
+# Vercel Serverless Edge Python handlers often bypass FastAPI "startup" lifecycle events.
+create_tables()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
