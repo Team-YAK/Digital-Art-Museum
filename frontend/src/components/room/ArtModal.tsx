@@ -282,53 +282,62 @@ export default function ArtModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-hidden"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-none p-4 overflow-hidden"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="glass-panel relative w-full max-w-2xl max-h-[90vh] rounded-2xl flex flex-col shadow-[0_0_50px_rgba(6,182,212,0.15)] border border-white/10 overflow-hidden animate-fade-in-up"
+        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in-up"
+        style={{ background: panelBg, border: `3px solid ${goldText}`, boxShadow: shadow, fontFamily: "monospace" }}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 glass-button w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white"
-        >
-          ✕
-        </button>
+        {/* Header/Close Button */}
+        <div style={{ padding: "16px 20px", background: darkBg, borderBottom: `2px solid ${dimGold}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <span style={{ fontSize: 20 }}>🖼️</span>
+            <span style={{ fontWeight: "bold", color: goldText, letterSpacing: 1, marginLeft: 10, textTransform: "uppercase" }}>
+              Artwork Viewer
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", color: dimGold, fontSize: "16px", fontWeight: "bold", cursor: "pointer" }}
+          >
+            X
+          </button>
+        </div>
 
         {/* Image Section */}
-        <div className="relative w-full bg-black/60 border-b border-white/10 flex items-center justify-center p-4">
+        <div style={{ padding: 16, background: "#000", borderBottom: `2px solid ${dimGold}`, display: "flex", justifyContent: "center" }}>
           <img
             src={artwork.imageUrl}
             alt={artwork.title}
-            className="max-h-[35vh] w-auto object-contain rounded-lg shadow-2xl"
+            style={{ maxHeight: "35vh", objectFit: "contain", imageRendering: "pixelated", border: `2px solid ${dimGold}` }}
           />
         </div>
 
         {/* Content Section */}
-        <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          <div className="flex items-start justify-between mb-4">
-            <h2 className="text-3xl font-bold text-white tracking-tight text-gradient">
+        <div style={{ padding: 24, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+            <h2 style={{ fontSize: 24, fontWeight: "bold", color: lightGold, textTransform: "uppercase", margin: 0 }}>
               {artwork.title}
             </h2>
-            <div className="flex flex-col items-end">
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
               <button
                 onClick={handleLike}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
-                  likeData.liked
-                    ? "bg-red-500/20 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                    : "bg-white/5 border-white/20 text-white/80 hover:bg-white/10 hover:border-white/40"
-                }`}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: likeData.liked ? "#3a0000" : darkBg,
+                  border: `2px solid ${likeData.liked ? "#ff4444" : dimGold}`, color: likeData.liked ? "#ff8888" : goldText,
+                  cursor: "pointer", fontFamily: "monospace", textTransform: "uppercase", fontWeight: "bold"
+                }}
               >
-                <span className="text-lg">{likeData.liked ? "♥" : "♡"}</span>
-                <span className="font-medium">{likeData.count}</span>
+                <span style={{ fontSize: 16 }}>{likeData.liked ? "♥" : "♡"}</span>
+                <span>{likeData.count}</span>
               </button>
-              {likeError && <span className="text-xs tracking-wider text-red-400 mt-1">{likeError}</span>}
+              {likeError && <span style={{ fontSize: 10, color: "#ff8888", marginTop: 4 }}>{likeError}</span>}
             </div>
           </div>
 
           {artwork.description && (
-            <p className="text-gray-300 leading-relaxed mb-6 font-light">
+            <p style={{ color: "#ccc", lineHeight: 1.5, marginBottom: 24, fontSize: 14 }}>
               {artwork.description}
             </p>
           )}
@@ -337,120 +346,126 @@ export default function ArtModal({
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="mb-8 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium transition-colors"
+              style={{
+                alignSelf: "flex-start", padding: "6px 12px", background: "#3a0000", border: "2px solid #ff4444", color: "#ff8888",
+                cursor: "pointer", fontFamily: "monospace", textTransform: "uppercase", fontSize: 11, marginBottom: 24, fontWeight: "bold"
+              }}
             >
               {isDeleting ? "Removing..." : "Remove Artwork"}
             </button>
           )}
 
           {/* Discussion / AI Guide Section */}
-          <div className="mt-6 pt-6 border-t border-white/10">
+          <div style={{ borderTop: `2px solid ${dimGold}`, paddingTop: 20 }}>
             {/* Tabs */}
-            <div className="flex gap-6 mb-6 border-b border-white/10">
+            <div style={{ display: "flex", gap: 24, marginBottom: 20, borderBottom: `2px solid ${dimGold}` }}>
               <button
                 onClick={() => setActiveTab("comments")}
-                className={`pb-2 text-lg font-semibold tracking-wide uppercase transition-colors ${
-                  activeTab === "comments"
-                    ? "text-cyan-400 border-b-2 border-cyan-400"
-                    : "text-white/50 hover:text-white/80"
-                }`}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", paddingBottom: 8, fontFamily: "monospace", fontSize: 14,
+                  fontWeight: "bold", textTransform: "uppercase", color: activeTab === "comments" ? lightGold : dimGold,
+                  borderBottom: activeTab === "comments" ? `2px solid ${lightGold}` : "none", marginBottom: -2
+                }}
               >
                 Discussion ({comments.length})
               </button>
               <button
                 onClick={() => setActiveTab("guide")}
-                className={`pb-2 text-lg font-semibold tracking-wide uppercase transition-colors flex items-center gap-2 ${
-                  activeTab === "guide"
-                    ? "text-purple-400 border-b-2 border-purple-400"
-                    : "text-white/50 hover:text-white/80"
-                }`}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", paddingBottom: 8, fontFamily: "monospace", fontSize: 14,
+                  fontWeight: "bold", textTransform: "uppercase", color: activeTab === "guide" ? lightGold : dimGold,
+                  borderBottom: activeTab === "guide" ? `2px solid ${lightGold}` : "none", marginBottom: -2, display: "flex", gap: 8, alignItems: "center"
+                }}
               >
                 <span>AI Guide</span>
-                <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">Beta</span>
+                <span style={{ background: dimGold, color: panelBg, padding: "2px 6px", fontSize: 9 }}>BETA</span>
               </button>
             </div>
             
             {activeTab === "comments" ? (
               <>
-                <div className="flex gap-3 mb-6">
+                <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
                   <input
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
                     placeholder="Share your thoughts..."
-                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-sans"
                     disabled={submittingComment}
+                    style={{
+                      flex: 1, padding: "10px 14px", fontFamily: "monospace", fontSize: 13, background: darkBg, border: `2px solid ${dimGold}`,
+                      color: lightGold, outline: "none"
+                    }}
                   />
                   <button
                     onClick={handleAddComment}
                     disabled={submittingComment || !newComment.trim()}
-                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 text-white rounded-xl font-medium transition-all shadow-lg active:scale-95 border border-white/10"
+                    style={{
+                      fontFamily: "monospace", fontSize: 12, fontWeight: "bold", color: panelBg, background: goldText, border: `2px solid ${dimGold}`,
+                      padding: "10px 20px", cursor: "pointer", boxShadow: "2px 2px 0 #000", textTransform: "uppercase",
+                      opacity: (submittingComment || !newComment.trim()) ? 0.5 : 1
+                    }}
                   >
                     Post
                   </button>
                 </div>
 
-                {commentError && <p className="text-red-400 text-sm mb-4 bg-red-900/20 p-2 rounded-lg">{commentError}</p>}
+                {commentError && <div style={{ padding: "8px 12px", background: "#3a0000", border: "2px solid #ff4444", color: "#ff8888", fontSize: 12, marginBottom: 16 }}>{commentError}</div>}
 
-                <div className="space-y-4">
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {comments.length === 0 && (
-                    <p className="text-gray-500 italic text-center py-4">No comments yet. Start the conversation!</p>
+                    <p style={{ color: dimGold, fontStyle: "italic", textAlign: "center", padding: 16 }}>No comments yet. Start the conversation!</p>
                   )}
                   {comments.map((c) => (
-                    <div key={c.id} className="bg-white/5 rounded-xl p-4 border border-white/5">
-                      <CommentItem
-                        comment={c}
-                        artworkId={artwork.artworkId}
-                        onReplyAdded={fetchComments}
-                      />
+                    <div key={c.id} style={{ background: darkBg, border: `2px solid ${dimGold}`, padding: 16 }}>
+                      <CommentItem comment={c} artworkId={artwork.artworkId} onReplyAdded={fetchComments} />
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              <div className="flex flex-col h-[320px] bg-black/30 rounded-xl border border-white/5 p-4 box-border">
+              <div style={{ display: "flex", flexDirection: "column", height: 320, background: darkBg, border: `2px solid ${dimGold}`, padding: 16 }}>
                 {/* Guide messages list */}
-                <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2 scrollbar-thin scrollbar-thumb-white/20">
+                <div style={{ flex: 1, overflowY: "auto", marginBottom: 16, display: "flex", flexDirection: "column", gap: 12, paddingRight: 8 }}>
                   {guideMessages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`p-3 rounded-xl max-w-[85%] ${
-                          msg.role === "user"
-                            ? "bg-purple-900/40 border border-purple-500/30 text-white rounded-br-none"
-                            : "bg-white/5 border border-white/10 text-gray-300 rounded-bl-none"
-                        }`}
-                      >
-                        <p className="text-sm font-sans leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    <div key={idx} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                      <div style={{
+                        padding: 12, maxWidth: "85%",
+                        background: msg.role === "user" ? "#31260e" : panelBg,
+                        border: `2px solid ${msg.role === "user" ? goldText : dimGold}`,
+                        color: lightGold
+                      }}>
+                        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{msg.text}</p>
                       </div>
                     </div>
                   ))}
                   {isGuideThinking && (
-                    <div className="flex justify-start">
-                      <div className="bg-white/5 border border-white/10 text-gray-400 p-3 rounded-xl rounded-bl-none max-w-[80%] animate-pulse">
-                        <p className="text-sm">Thinking...</p>
+                    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                      <div style={{ padding: 12, maxWidth: "80%", background: panelBg, border: `2px solid ${dimGold}`, color: dimGold, opacity: 0.7 }}>
+                        <p style={{ margin: 0, fontSize: 13 }}>Thinking...</p>
                       </div>
                     </div>
                   )}
                 </div>
                 {/* Guide input line */}
-                <div className="flex gap-3">
+                <div style={{ display: "flex", gap: 12 }}>
                   <input
                     type="text"
                     value={guideInput}
                     onChange={(e) => setGuideInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleGuideSubmit()}
                     placeholder="Ask about this artwork..."
-                    className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 font-sans"
                     disabled={isGuideThinking}
+                    style={{ flex: 1, padding: "10px 14px", fontFamily: "monospace", fontSize: 13, background: "#000", border: `2px solid ${dimGold}`, color: lightGold, outline: "none" }}
                   />
                   <button
                     onClick={handleGuideSubmit}
                     disabled={isGuideThinking || !guideInput.trim()}
-                    className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl font-medium transition-all shadow-lg active:scale-95 border border-white/10"
+                    style={{
+                      fontFamily: "monospace", fontSize: 12, fontWeight: "bold", color: panelBg, background: goldText, border: `2px solid ${dimGold}`,
+                      padding: "10px 20px", cursor: "pointer", boxShadow: "2px 2px 0 #000", textTransform: "uppercase",
+                      opacity: (isGuideThinking || !guideInput.trim()) ? 0.5 : 1
+                    }}
                   >
                     Send
                   </button>
