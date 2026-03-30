@@ -12,7 +12,11 @@ import tempfile
 
 from sqlalchemy.orm import Session
 from fastapi import UploadFile, HTTPException
-import boto3
+
+try:
+    import boto3
+except ModuleNotFoundError:
+    boto3 = None
 
 from app.config import (
     UPLOAD_DIR, SUPABASE_URL, SUPABASE_BUCKET, 
@@ -24,6 +28,11 @@ from app.services.pixelizer import pixelize
 def upload_to_cloud(local_path: str, file_name: str) -> str | None:
     if not SUPABASE_URL:
         return None
+    if boto3 is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Cloud storage is configured but boto3 is not installed on the backend.",
+        )
     s3 = boto3.client(
         "s3",
         endpoint_url=SUPABASE_URL,
