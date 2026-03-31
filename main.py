@@ -10,6 +10,8 @@ import sys
 import os
 import time
 import signal
+import urllib.request
+import urllib.error
 
 
 def free_port(port: int):
@@ -26,11 +28,25 @@ def free_port(port: int):
         print(f"  Freed port {port} (killed {len(pids)} process(es))")
 
 
+def wait_for_http(url: str, timeout: float = 20.0) -> bool:
+    """Poll an HTTP endpoint until it responds successfully or times out."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                if 200 <= response.status < 500:
+                    return True
+        except (urllib.error.URLError, urllib.error.HTTPError):
+            pass
+        time.sleep(0.5)
+    return False
+
+
 def main():
     project_dir = os.path.dirname(os.path.abspath(__file__))
     backend_dir = os.path.join(project_dir, "backend")
     frontend_dir = os.path.join(project_dir, "frontend")
-    backend_venv = os.path.join(backend_dir, "venv", "bin", "activate")
+    backend_python = os.path.join(backend_dir, "venv", "bin", "python")
 
     processes = []
 
@@ -60,19 +76,25 @@ def main():
 
     # Start backend
     print("Starting backend on http://localhost:8000 ...")
+    if not os.path.exists(backend_python):
+        print(f"Backend Python not found: {backend_python}")
+        print("Create the backend virtualenv before launching the app.")
+        sys.exit(1)
+
     backend_process = subprocess.Popen(
-        f"source {backend_venv} && python run.py",
-        shell=True,
+        [backend_python, "run.py"],
         cwd=backend_dir,
     )
     processes.append(backend_process)
-    time.sleep(3)
+
+    if not wait_for_http("http://localhost:8000/health"):
+        print("Backend failed to start correctly. Stopping launcher.")
+        cleanup(None, None)
 
     # Start frontend
     print("Starting frontend on http://localhost:3000 ...")
     frontend_process = subprocess.Popen(
-        "npm run dev",
-        shell=True,
+        ["npm", "run", "dev"],
         cwd=frontend_dir,
     )
     processes.append(frontend_process)
